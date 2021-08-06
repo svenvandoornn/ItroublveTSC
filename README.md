@@ -22,7 +22,11 @@
 ──────────────────────────────────────────────────────────
 15. Go to **Stealer**
 16. Click on "CREATE STEALER" & select path to save the stealer
-17. Patiently wait for success or error :c (if error ask in discord server)
+17. Patiently wait for success or error 
+	**Causes**
+	- Build Tools or .NET Framework Developer version not installed.
+	- ICO isn't correctly converted...
+	- If anything other issues, you may open a "Issue", but this being a disconntinued project. I won't do much other then assisting you.
 18. Increase File Size using "File Pumper" (Optional & easy to use)
 
 
