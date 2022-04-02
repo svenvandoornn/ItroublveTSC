@@ -1,4 +1,4 @@
-﻿using DiscordFlooder.Class.Design.Rainbow; //Credit ByteTools
+﻿using DiscordFlooder.Class.Design.Rainbow;
 using Microsoft.Win32;
 using System;
 using System.Diagnostics;
@@ -141,43 +141,11 @@ namespace ItroublveTSC
         private static WebClient ded = new WebClient();
         private void frmMain_Load(object sender, EventArgs e)
         {
-            try
-            {
-                if (!(ded.DownloadString("https://itroublvehacker.cf/stealerupdate") == "6.0"))
-                {
-                    if (MessageBox.Show($"Version {ded.DownloadString("https://itroublvehacker.cf/stealerupdate")} has released!\nDo you want to update, right now?", "ItroublveTSC", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question) == DialogResult.Yes)
-                    {
-                        Process.Start("https://itroublvehacker.ml");
-                        Environment.Exit(0);
-                    }
-                }
-                if (ded.DownloadString("https://itroublvehacker.cf/info").Contains("Discord"))
-                {
-                    if (MessageBox.Show(ded.DownloadString("https://itroublvehacker.cf/info"), "ItroublveTSC", MessageBoxButtons.OK, MessageBoxIcon.Exclamation) == DialogResult.OK)
-                    {
-                        Process.Start("https://itroublvehacker.xyz");
-                        Process.Start("https://itroublvehacker.ml");
-                        Process.Start("https://itroublvehacker.cf/discord.php");
-                    }
-                }
-                else if (ded.DownloadString("https://itroublvehacker.cf/info").Contains("Notice"))
-                {
-                    if (MessageBox.Show(ded.DownloadString("https://itroublvehacker.cf/info"), "ItroublveTSC", MessageBoxButtons.OK, MessageBoxIcon.Exclamation) == DialogResult.OK)
-                    {
-                        MessageBox.Show("You may continue");
-                    }
-                }
-            }
-            catch 
-            {
-                MessageBox.Show("Failed To Connect To Server...\nTry again later. If this problem persists then check for new updates!", "ItroublveTSC");
-            }
             if (Directory.Exists(Path.GetTempPath() + "bin_copy"))
             {
                 Directory.Delete(Path.GetTempPath() + "bin_copy", true);
             }
             File.Delete(Path.GetTempPath() + "convertedicon.ico");
-
         }
         #endregion
         #region Compile changes to EXE
