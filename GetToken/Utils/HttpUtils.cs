@@ -1,8 +1,8 @@
-﻿using Newtonsoft.Json;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace StealerExt
 {
@@ -25,8 +25,8 @@ namespace StealerExt
             }
             return await client.GetStringAsync(url);
         }
-        
-        public async Task<HttpResponseMessage> PostAsync(string url, object jsonBody, Dictionary<string, string> headers = null)
+
+        public async Task<HttpResponseMessage> PostAsync(string url, HttpContent httpContent, Dictionary<string, string> headers = null)
         {
             if (headers != null)
             {
@@ -35,8 +35,7 @@ namespace StealerExt
                     client.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
                 }
             }
-            var content = new StringContent(JsonConvert.SerializeObject(jsonBody), Encoding.UTF8, "application/json");
-            return await client.PostAsync(url, content);
+            return await client.PostAsync(url, httpContent);
         }
     }
 }

